@@ -25,7 +25,7 @@ without it, your main game exe will crash on launch
 ## NETRICSA Messages Restore
 Restores editing NETRICSA messages the way it was possible in Serious Sam HD, functions are identical, SS3 messages will read garbage, unused data but can be safely edited and saved.
 
-<img width="390" height="283" alt="2026-11-18 20_39_42-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/da7623a5-b133-4b0b-9da4-345d637fe339" />
+<img width="290" alt="2026-11-18 20_39_42-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/da7623a5-b133-4b0b-9da4-345d637fe339" />
 <img width="700" height="395" alt="2026-11-18 20_44_10-Simulation" src="https://github.com/user-attachments/assets/4480d74b-ebbf-4396-af1c-5fad7a6d59a0" />
 
 ## More Console Commands
