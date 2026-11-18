@@ -27,38 +27,57 @@ Restores editing NETRICSA messages the way it was possible in Serious Sam HD, fu
 
 <img width="390" height="283" alt="2026-11-18 20_39_42-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/da7623a5-b133-4b0b-9da4-345d637fe339" />
 <img width="700" height="395" alt="2026-11-18 20_44_10-Simulation" src="https://github.com/user-attachments/assets/4480d74b-ebbf-4396-af1c-5fad7a6d59a0" />
+
 ## More Console Commands
 Adds variety of console commands linked to cvars that are locked/read-only by default:
+
 ### Toggle metadata codenames (Ctrl+Shift+Alt+C)
 Key combination restored from Serious Sam 2 - displays internal metadata of all assets, allows editing past stuff normally not possible, such as assets without edit data.
 
 <img width="544" height="415" alt="2026-11-18 22_02_59-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/d637e61b-f997-43df-b9f5-3e746c7a3278" />
+
 ### res_bSaveInTextFormat (0,1,2)
 Save assets in plain text format instead of binary, 1 skips certain formats, 2 saves every file, function stays on upon restarting editor and is saved to SeriousEditor.ini
 
 ❗IMPORTANT: world files saved with this option have broken signature, they require SeSigning or Load Unsigned plugin below❗
 ### scr_bUnsecureScripting
+
 <img width="699" height="300" alt="2026-11-18 20_56_53-Simulation" src="https://github.com/user-attachments/assets/816aa103-d720-4cde-b42c-4d0bd3ac66a6" />
+
 ### prj_bUnlockAutoShotgunScope
+
 Re-enable scope for auto shotgun (requires world reload)
 
 <img width="1163" height="778" alt="2026-11-18 20_58_02-Simulation" src="https://github.com/user-attachments/assets/00f9e395-e768-4bce-818e-a30b86cf8404" />
+
 ### prj_bAllowLevelChangeInEditor
+
 Completing level in editor will not quit the simulation and instead load the next level. Remains on upon restart and is saved to SeriousEditor.ini
+
 ### men_bMenuFrame
+
 Re-eneables SS3's original frame around menu
+
 ### fxd_bShowDebug
+
 Effect information debug display
 
 <img width="633" height="417" alt="2026-11-18 21_00_45-Simulation" src="https://github.com/user-attachments/assets/fae804a0-2467-404d-9a7b-8357f65b590b" />
+
 ### fil_bReportFileOpen
+
 <img width="365" height="145" alt="2026-11-18 21_01_57-Simulation" src="https://github.com/user-attachments/assets/717f86df-ef6e-4911-ab80-553ff28afc40" />
+
 ### md_bReportReadStats
+
 Remains on upon restart and is saved to SeriousEditor.ini
 
 <img width="373" height="127" alt="2026-11-18 21_03_07-Simulation" src="https://github.com/user-attachments/assets/8428e35f-3928-472a-9e19-285a19e5e662" />
+
 ### hud_bShowGeometryInfo
+
 <img width="592" height="385" alt="2026-11-18 20_50_29-Simulation" src="https://github.com/user-attachments/assets/183ea930-6428-483a-99d1-76a013a36b1a" />
+
 
 ## Editor QOL Tools
 To be expanded - a collection of minor patches to SED's various editors.
@@ -87,6 +106,7 @@ Has options to control how shaded part should be recolored, threshold of shadow 
 Possibly can be expanded in the future to use color ramp and masks.
 
 https://github.com/user-attachments/assets/77121eac-f190-4663-b97c-12bc294ba392
+
 https://github.com/user-attachments/assets/0126a841-073d-49d5-8a8b-9ac3cde729b9
 
 
