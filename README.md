@@ -26,6 +26,7 @@ without it, your main game exe will crash on launch
 Restores editing NETRICSA messages the way it was possible in Serious Sam HD, functions are identical, SS3 messages will read garbage, unused data but can be safely edited and saved.
 
 <img width="290" alt="2026-11-18 20_39_42-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/da7623a5-b133-4b0b-9da4-345d637fe339" />
+
 <img width="700" height="395" alt="2026-11-18 20_44_10-Simulation" src="https://github.com/user-attachments/assets/4480d74b-ebbf-4396-af1c-5fad7a6d59a0" />
 
 ## More Console Commands
@@ -34,7 +35,7 @@ Adds variety of console commands linked to cvars that are locked/read-only by de
 ### Toggle metadata codenames (Ctrl+Shift+Alt+C)
 Key combination restored from Serious Sam 2 - displays internal metadata of all assets, allows editing past stuff normally not possible, such as assets without edit data.
 
-<img width="544" height="415" alt="2026-11-18 22_02_59-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/d637e61b-f997-43df-b9f5-3e746c7a3278" />
+<img width="444" alt="2026-11-18 22_02_59-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/d637e61b-f997-43df-b9f5-3e746c7a3278" />
 
 ### res_bSaveInTextFormat (0,1,2)
 Save assets in plain text format instead of binary, 1 skips certain formats, 2 saves every file, function stays on upon restarting editor and is saved to SeriousEditor.ini
@@ -42,13 +43,13 @@ Save assets in plain text format instead of binary, 1 skips certain formats, 2 s
 ❗IMPORTANT: world files saved with this option have broken signature, they require SeSigning or Load Unsigned plugin below❗
 ### scr_bUnsecureScripting
 
-<img width="699" height="300" alt="2026-11-18 20_56_53-Simulation" src="https://github.com/user-attachments/assets/816aa103-d720-4cde-b42c-4d0bd3ac66a6" />
+<img width="599" alt="2026-11-18 20_56_53-Simulation" src="https://github.com/user-attachments/assets/816aa103-d720-4cde-b42c-4d0bd3ac66a6" />
 
 ### prj_bUnlockAutoShotgunScope
 
 Re-enable scope for auto shotgun (requires world reload)
 
-<img width="1163" height="778" alt="2026-11-18 20_58_02-Simulation" src="https://github.com/user-attachments/assets/00f9e395-e768-4bce-818e-a30b86cf8404" />
+<img width="663" alt="2026-11-18 20_58_02-Simulation" src="https://github.com/user-attachments/assets/00f9e395-e768-4bce-818e-a30b86cf8404" />
 
 ### prj_bAllowLevelChangeInEditor
 
@@ -62,21 +63,21 @@ Re-eneables SS3's original frame around menu
 
 Effect information debug display
 
-<img width="633" height="417" alt="2026-11-18 21_00_45-Simulation" src="https://github.com/user-attachments/assets/fae804a0-2467-404d-9a7b-8357f65b590b" />
+<img width="533" alt="2026-11-18 21_00_45-Simulation" src="https://github.com/user-attachments/assets/fae804a0-2467-404d-9a7b-8357f65b590b" />
 
 ### fil_bReportFileOpen
 
-<img width="365" height="145" alt="2026-11-18 21_01_57-Simulation" src="https://github.com/user-attachments/assets/717f86df-ef6e-4911-ab80-553ff28afc40" />
+<img width="365" alt="2026-11-18 21_01_57-Simulation" src="https://github.com/user-attachments/assets/717f86df-ef6e-4911-ab80-553ff28afc40" />
 
 ### md_bReportReadStats
 
 Remains on upon restart and is saved to SeriousEditor.ini
 
-<img width="373" height="127" alt="2026-11-18 21_03_07-Simulation" src="https://github.com/user-attachments/assets/8428e35f-3928-472a-9e19-285a19e5e662" />
+<img width="373" alt="2026-11-18 21_03_07-Simulation" src="https://github.com/user-attachments/assets/8428e35f-3928-472a-9e19-285a19e5e662" />
 
 ### hud_bShowGeometryInfo
 
-<img width="592" height="385" alt="2026-11-18 20_50_29-Simulation" src="https://github.com/user-attachments/assets/183ea930-6428-483a-99d1-76a013a36b1a" />
+<img width="392" alt="2026-11-18 20_50_29-Simulation" src="https://github.com/user-attachments/assets/183ea930-6428-483a-99d1-76a013a36b1a" />
 
 
 ## Editor QOL Tools
@@ -117,7 +118,7 @@ Backport of Serious Sam 4's MultipathMarker entity - a variant of PathMarker tha
 
 Defined as sub-class of original PathMarker entity, meaning it can be directly conneted with the PathMarker and vice-versa, as well as targetted by Tactics, compatible with Auto Patrol plugin.
 
-<img width="1480" height="669" alt="2026-11-18 22_06_20-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/84ad94de-2776-49bb-85b9-a380ab07fb65" />
+<img width="780" alt="2026-11-18 22_06_20-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/84ad94de-2776-49bb-85b9-a380ab07fb65" />
 
 ## Load Unsigned
 Allows loading files with incorrect/missing signature, basically skipping usage of SeSigner, also allows loading world files saved with res_bSaveInTextFormat and may allow using SED's "finalize" option that removes Edit Data from files.
@@ -129,7 +130,7 @@ Adds an "Auto Patrol" checkbox to all puppets, when checked upon spawning in the
 
 This is essentially re-implementation of functionality that Serious Sam 2 had that was dropped in HD and up.
 
-<img width="347" height="118" alt="2026-11-18 20_29_24-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/3fd590f4-97d7-4727-ae4a-7d969729c78f" />
+<img width="347" alt="2026-11-18 20_29_24-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/3fd590f4-97d7-4727-ae4a-7d969729c78f" />
 
 
 ## Multi Spawner Expansion
@@ -146,7 +147,7 @@ like randomize template order check, except makes MultiSpawner generate random s
 ### Groups Full Random
 mix of two above, spawns enemies in groups ordered by random seed each time the world is loaded.
 
-<img width="379" height="187" alt="2026-11-18 20_05_57-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/8eda8338-1849-4cd8-a3ee-8a95d268e61a" />
+<img width="379" alt="2026-11-18 20_05_57-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/8eda8338-1849-4cd8-a3ee-8a95d268e61a" />
 
 # Credits:
 Andeiki and Shockwave for testing the plugins on their games.
