@@ -1,7 +1,7 @@
 # Serious Sam Fusion 2017 ASI Loader
 A DLL hook for Serious Sam 2017's Unrestricted game and Serious Editor allowing loading ASI plugins into exe, plus a few scrips.
 
-Tested in Singleplayer on custom levels, compatible with save games
+Tested in Singleplayer on custom levels, compatible with save games, does not alter entity formats aside from 2 plugins mentioned at the very bottom of the list.
 
 ❗❗❗NOT YET TESTED IN MULTIPLAYER❗❗❗
 
@@ -106,17 +106,18 @@ Has options to control how shaded part should be recolored, threshold of shadow 
 
 Possibly can be expanded in the future to use color ramp and masks.
 
+Models with cellshading can be safely loaded in plugin-less editor, the shader will simply get replaced with empty shader.
+
 https://github.com/user-attachments/assets/77121eac-f190-4663-b97c-12bc294ba392
 
 https://github.com/user-attachments/assets/0126a841-073d-49d5-8a8b-9ac3cde729b9
-
-
-
 
 ## SS4 MultipathMarker
 Backport of Serious Sam 4's MultipathMarker entity - a variant of PathMarker that allows selecting multiple next path markers that puppet will randomly pick upon reaching the marker.
 
 Defined as sub-class of original PathMarker entity, meaning it can be directly conneted with the PathMarker and vice-versa, as well as targetted by Tactics, compatible with Auto Patrol plugin.
+
+Worlds with MultipathMarkers can be safely loaded in plugin-less game and editor, the marker simply gets removed.
 
 <img width="780" alt="2026-11-18 22_06_20-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/84ad94de-2776-49bb-85b9-a380ab07fb65" />
 
@@ -148,6 +149,14 @@ like randomize template order check, except makes MultiSpawner generate random s
 mix of two above, spawns enemies in groups ordered by random seed each time the world is loaded.
 
 <img width="379" alt="2026-11-18 20_05_57-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/8eda8338-1849-4cd8-a3ee-8a95d268e61a" />
+
+# Optional Test Levels:
+
+I've attached two .gro files for anyone to test the functionality of these plugins:
+
+SN_TestLevelforASIStuff.gro contains level with Multipath Marker, a Groups Full Random Multi Spawner, puppets that Auto Patrol upon spawn and a cellshaded Demon observing them.
+
+SN_TestLevelforASIStuff_NOCUSTOM.gro is the same level WITHOUT the two scripts that use custom entities - Auto Patrol and custom Multi Spawner, it should even load in plugin-less game.
 
 # Credits:
 Andeiki and Shockwave for testing the plugins on their games.
