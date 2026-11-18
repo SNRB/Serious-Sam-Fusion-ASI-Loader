@@ -152,7 +152,7 @@ mix of two above, spawns enemies in groups ordered by random seed each time the 
 
 # Optional Test Levels:
 
-I've attached two .gro files for anyone to test the functionality of these plugins:
+I've attached two .gro files for anyone to test the functionality of these plugins, in-game they are in "SeriousNorbo's Test Maps" campaign:
 
 SN_TestLevelforASIStuff.gro contains level with Multipath Marker, a Groups Full Random Multi Spawner, puppets that Auto Patrol upon spawn and a cellshaded Demon observing them.
 
