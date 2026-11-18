@@ -2,6 +2,7 @@
 A DLL hook for Serious Sam 2017's Unrestricted game and Serious Editor allowing loading ASI plugins into exe, plus a few scrips.
 
 Tested in Singleplayer on custom levels, compatible with save games
+
 ❗❗❗NOT YET TESTED IN MULTIPLAYER❗❗❗
 
 # Compatibility
