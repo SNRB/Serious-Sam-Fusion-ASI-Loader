@@ -158,7 +158,8 @@ SN_TestLevelforASIStuff.gro contains level with Multipath Marker, a Groups Full 
 
 SN_TestLevelforASIStuff_NOCUSTOM.gro is the same level WITHOUT the two scripts that use custom entities - Auto Patrol and custom Multi Spawner, it should even load in plugin-less game.
 
-# Credits:
+# Special thanks to:
+Nigmas for providing informations on Fusion's memory cvars to allow More Console Commands plugin to exist
 Andeiki and Shockwave for testing the plugins on their games.
 
 # AI
