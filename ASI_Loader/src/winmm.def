@@ -1,0 +1,7 @@
+LIBRARY winmm.dll
+EXPORTS
+timeBeginPeriod=wm_timeBeginPeriod
+timeEndPeriod=wm_timeEndPeriod
+joyGetNumDevs=wm_joyGetNumDevs
+joyGetDevCapsA=wm_joyGetDevCapsA
+joyGetPosEx=wm_joyGetPosEx
