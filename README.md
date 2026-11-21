@@ -9,7 +9,7 @@ Tested in Singleplayer on custom levels, compatible with save games, does not al
 works on 440323 public Steam version (current ATM), plugins simply refuse to load on non-matching versions, loader and plugins only affect unrestricted exe and the editor, I will not provide support in altering non-moddable version of the game.
 
 # Installing / Uninstalling
-Download Fusion-ASI-Loader-v1.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder, loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder
+Download Fusion-ASI-Loader-v1.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder, loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder, no plugins are dependend on each other with exception of Game plugins (noted in next point)
 
 To uninstall plugins temove them from the folder, and to uninstall loader completely simply remove the .dll library
 
@@ -159,7 +159,10 @@ SN_TestLevelforASIStuff.gro contains level with Multipath Marker, a Groups Full 
 SN_TestLevelforASIStuff_NOCUSTOM.gro is the same level WITHOUT the two scripts that use custom entities - Auto Patrol and custom Multi Spawner, it should even load in plugin-less game.
 
 # Build from source
-ASI_Loader, AnimButtonTweak, CellShaded, MultiPathMarker and SkipExeSignatureCheck may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as independend ASI Plugins.
+
+Each plugin and loader are independend, so they were sorted to folders with their own build executables and sources.
+
+ASI_Loader, AnimButtonTweak, CellShaded, MultiPathMarker and SkipExeSignatureCheck may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as standalone ASI Plugins.
 
 # Special thanks to:
 Nigmas for providing informations on Fusion's memory cvars to allow More Console Commands plugin to exist
