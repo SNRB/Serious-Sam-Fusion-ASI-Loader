@@ -1,0 +1,21 @@
+LIBRARY kernel32.dll
+EXPORTS
+GetModuleHandleW
+GetModuleFileNameW
+VirtualAlloc
+VirtualProtect
+FlushInstructionCache
+GetCurrentProcess
+CreateFileW
+WriteFile
+CloseHandle
+LoadLibraryW
+GetProcAddress
+QueryPerformanceCounter
+GetTickCount64
+GetCurrentProcessId
+DisableThreadLibraryCalls
+GetLastError
+GetEnvironmentVariableW
+SetEnvironmentVariableW
+OutputDebugStringW

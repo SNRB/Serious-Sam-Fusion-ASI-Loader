@@ -1,0 +1,675 @@
+/* Copyright (c) 2002-2014 Croteam Ltd. All rights reserved. */
+
+// CellShadedShader.psh
+// Cel (toon) shaded variant of StandardShader.psh: identical inputs, textures and options, but
+//  - dynamic lights light the surface with a sharp terminator line and a flat (unshaded) lit area,
+//  - shadow-map / projector edges are sharpened the same way,
+//  - the ambient (shaded) part is flattened and tinted/scaled by the shade color and intensity.
+// Extra constants: c22 (shade color + intensity), c23 (terminator, flatness, shadow edge), c24 (flat ambient).
+
+// (essential macros for parsing HLSL and GLSL!)
+#include <Engine/Graphics/Shader/Include/Macros.hs>
+// (various includes)
+#include <Engine/Graphics/Shader/Include/Misc.hs>
+#include <Engine/Graphics/Shader/Include/RGBEConversion.hs>
+#include <Engine/Graphics/Shader/Include/BumpNormal.hs>
+#include <Engine/Graphics/Shader/Include/BumpMapping.hs>
+#include <Engine/Graphics/Shader/Include/ParallaxMapping.hs>
+#include <Engine/Graphics/Shader/Include/ShadowBuffer.hs>
+#include <Engine/Graphics/Shader/Include/Lighting.hs>
+#include <Engine/Graphics/Shader/Include/FozeBlend.hs>
+#include <Engine/Graphics/Shader/Include/VREye.hs>
+
+
+// textures
+_Sreg2D( t_sBase, s_tBase, 0);
+#ifdef HAS_NORMAL_MAP
+  _Sreg2D( t_sNormalMap, s_tNormalMap, 1);
+  _Sreg2D( t_sDetailMap, s_tDetailMap, 6);
+#endif
+_SregCUBE(t_sEnvMap,    s_tEnvMap,    2);
+_Sreg2D(  t_sLightMap,  s_tLightMap,  3);
+_Sreg2D(  t_sGlossMask, s_tGlossMask, 4);
+_Sreg2D(  t_sHeightMap, s_tHeightMap, 5);
+_Sreg2D(  t_sBlendMask, s_tBlendMask, 7);
+// fast-lights & ambient-occlusuon texture
+_Sreg2D( t_sIllumAmbOcc, s_tIllumAmbOcc, 8);
+
+// base and coating colors
+_CregF( float4, c_vColBase, 0);
+_CregF( float4, c_vColCoatingShade, 1);
+static float3 c_vColCoating    = c_vColCoatingShade.rgb;
+static float  c_fShadeStrength = c_vColCoatingShade.a;
+// reflection color
+_CregF( float4, c_vColReflBump, 2);
+static float3 c_vColRefl  = c_vColReflBump.rgb;
+static float  c_fReflBump = c_vColReflBump.a;
+// illumination color
+_CregF( float4, c_vColIllumFres, 3);
+static float3 c_vColIllum = c_vColIllumFres.rgb;
+static float  c_fFresnel  = c_vColIllumFres.a;
+
+// lerp destination and mask colors dependant on the blend type
+_CregF( float4, c_vLerpDestMask, 4);
+static float4 c_vLerpDest = c_vLerpDestMask.xxxy;
+static float4 c_vLerpMask = c_vLerpDestMask.zzzw;
+  // (fog/haze use const reg c5-c7!)
+  // (bump mapping uses const reg c8!)
+  // (parallax mapping uses const reg c9!)
+
+// mask for usage of FLAO texture values
+_CregF( float4, c_vMaskFLAO, 10);
+
+// viewer position in absolute space
+_CregF( float4, c_vViewPosAbsPixLeft, 11);
+_CregF( float4, c_vViewPosAbsPixRight, 12);
+static float4 g_vViewPosAbsPix;
+
+// edge smoothing bias (.x) and mask (.y)
+_CregF( float4, c_vEdgeAlpha, 13);
+static float2 c_vEdgeSmoothing = c_vEdgeAlpha.xy;
+static float2 c_vAlphaRange    = c_vEdgeAlpha.zw;
+
+// base layer specularity
+_CregF( float4, c_vSpecMipFace, 14);
+static float  c_fBaseSpec = c_vSpecMipFace.x;
+static float  c_fCoatSpec = c_vSpecMipFace.y;
+static float2 c_vBaseCoatSpec = c_vSpecMipFace.xy; // (combined)
+// number of mipmaps of the reflection map        
+static float c_fReflMips = c_vSpecMipFace.z; 
+// clockwiseness (rendering direction)
+static float c_fFacingness = c_vSpecMipFace.w;
+
+// offset mapping UV-map ratios
+_CregF( float4, c_vDetailOffsetRatio, 15);  // detail X (.xy), Y (.zw)
+_CregF( float4, c_vBaseGlossOfsRatioX,16);  // base X (.xy), gloss X (.zw)
+_CregF( float4, c_vBaseGlossOfsRatioY,17);  // base Y (.xy), gloss Y (.zw)
+_CregF( float4, c_vMaskOffsetRatio,   18);  // blend-mask X (.xy), Y (.zw)
+_CregF( float4, c_vNormUnstretchFade, 19);  // normal-map offset unstretched
+static float2 c_vNormMapUnstretch = c_vNormUnstretchFade.xy;
+static float  c_f1oNormalMaxDist2 = c_vNormUnstretchFade.z;
+static float  c_f1oHeightMaxDist2 = c_vNormUnstretchFade.w;
+
+// fake light usage mask and attenuation
+_CregF( float4, c_vFakeLightBools, 20);
+static float c_fFakeLightAtt  = c_vFakeLightBools.x;
+static float c_fFakeLightMask = c_vFakeLightBools.y;
+// baking? 
+#ifdef BAKING
+  // in RGBE or LDR?                                            
+  static float c_fBakeRGBE  = c_vFakeLightBools.z;
+  static float c_fBakeGamma = c_vFakeLightBools.w;
+#endif
+
+// for screen coords sampling and colorization mask strength
+_CregF( float3, c_vScrSizeColMask, 21);
+static float2 c_v1oScreenSize= c_vScrSizeColMask.xy;
+static float  c_fColorizer   = c_vScrSizeColMask.z;
+
+// cel shading: color (.rgb, linear) and intensity (.a) of the shaded part
+_CregF( float4, c_vCelShade, 22);
+static float3 c_vCelShadeColor     = c_vCelShade.rgb;
+static float  c_fCelShadeIntensity = c_vCelShade.a;
+// cel shading: terminator center (.x) and half width (.y) in N.L units,
+//              ambient flatness (.z), shadow edge half width (.w)
+_CregF( float4, c_vCelParams, 23);
+static float c_fCelTerminator  = c_vCelParams.x;
+static float c_fCelHalfWidth   = c_vCelParams.y;
+static float c_fCelFlatness    = c_vCelParams.z;
+static float c_fCelShadowWidth = c_vCelParams.w;
+// cel shading: flat ambient light (spherical harmonics band 0, .rgb) and whether it is available (.a)
+_CregF( float4, c_vCelFlatAmbient, 24);
+
+
+// global vars
+static float4 g_vBaseColor;
+static float3 g_vPixNormalTan;
+static float4 g_vRawNorDet;
+static float3 g_vPixNormalAbs;
+static float3 g_vViewDirAbs;
+static float4 g_vIllumAmbOccSample = float4( 0,0,0, 1);
+
+// if using ambient specularity
+#if defined(HAS_AMBIENT_LIGHT) && defined(HAS_NORMAL_MAP) && (defined(HAS_SPECULARITY) || defined(HAS_COATING))
+
+  // need vertex normal for bump attenuation
+  static float3 g_vVexNormalAbs;
+#endif
+
+static float4 g_vGlossTex;
+#define g_fCoatSpec g_vGlossTex.r
+#define g_fCoatMask g_vGlossTex.g
+#define g_fDetAtt   g_vGlossTex.b
+#define g_fBaseSpec g_vGlossTex.a
+#define g_vBaseCoatSpec g_vGlossTex.ar
+
+
+// vertex shader output = pixel shader input
+PS_IN_BEGIN
+  _inReg( float4, vVexPosAbs, 0);
+  // mappings
+  _inReg( float4, vBasGlosUV, 1);
+  _inReg( float4, vLitMaskUV, 2);
+  _inReg( float4, vNormDetUV, 3);
+#ifdef APPLY_FOZE
+  // .x=fog, .y=haze amount
+  _inReg( float2, vFozeAmount, 4); 
+#endif
+  _inReg( float4, vVexColor,   5);
+  _inReg( float3, vDiffuseLit, 6);
+#if defined(HAS_PARALLAX) || (defined(HAS_NORMAL_MAP) && defined(HAS_DYNAMIC_LIGHT))
+  // transformation matrix from tangent to absolute space
+  _inReg( float3x3, mTanToAbs, 7);
+#else
+  // or just vertex normal
+  _inReg( float3, vNormalAbs,  7);
+#endif
+  _inScrReg( vScreenPos);
+  PS_IN_VR_REGS
+  _inFacReg;
+PS_IN_END
+
+
+
+// can sample reflection map only if has specularity
+#if (defined(HAS_SPECULARITY) || defined(HAS_COATING)) && defined(HAS_AMBIENT_LIGHT)
+
+
+// apply cube reflection map
+inline float3 GetReflectionMap( float4 vReflect, const float3 vReflMask)
+{
+  // choose cube LOD
+  vReflect.xyz -= vReflect.xyz * vReflMask / exp2( c_fReflMips-floor(vReflect.w));
+  // == vReflect.xyz *= lerp( 1, 1- 1/exp2(c_fReflMips-floor(vReflect.w)), vReflMask);
+  // lookup the reflection texture
+  vReflect.rgba = texLodCube( t_sEnvMap, s_tEnvMap, vReflect.xyz, vReflect.w);
+  vReflect.rgb  = UnpackRGBE( vReflect);
+  // modulate by constant reflection color
+  return vReflect.rgb * c_vColRefl;
+}
+
+
+// Evaluate Schlick BRDF function for ambient light.
+inline float3 CalcAmbientReflection(void)
+{
+  // (common vars for base and coating layer)
+  float3 vReflectCol, vNorAbs;
+  float4 vReflectDir;
+
+  // get normal
+#ifndef HAS_NORMAL_MAP
+  // from vertex
+  vNorAbs = g_vPixNormalAbs;
+#elif defined(HAS_DYNAMIC_LIGHT)
+  // attenuated from pixel
+  vNorAbs = lerp( g_vVexNormalAbs, g_vPixNormalAbs, _tcast(float3,c_fReflBump));
+#else
+  // faked from pixel
+  vNorAbs = g_vVexNormalAbs;
+  vNorAbs.xy -= g_vPixNormalTan.xy *c_fReflBump;
+#endif
+  // calculate reflection fresnel factor
+  float fNV = saturate( dot( vNorAbs, g_vViewDirAbs));
+  float fF = pow( 1.0f-fNV, 4.0f) * c_fFresnel;
+
+  // and get specularity of the base (.x) and coating (.y) layers
+  float2 vR = g_vBaseCoatSpec- g_vBaseCoatSpec*fF; // lerp( vR, 0, fF);
+
+  // reflect eye vector around normal; 2N(N.E) - E(N.N)
+  vReflectDir.xyz = reflect( g_vViewDirAbs, vNorAbs);
+
+  // if no coating layer
+  #ifndef HAS_COATING
+    // use base layer reflection factor
+    float fSA = vR.x;
+  // if no base layer
+  #elif !defined(HAS_SPECULARITY)
+    // use coating layer reflection factor
+    float fSA = vR.y;
+  // if has both layers
+  #else
+    // use average
+    float fSA = (vR.x+vR.y) *0.5f;
+  #endif
+  // attenuate reflection vector by specularity factor
+  vReflectDir.xyz = lerp( vReflectDir.xyz, -vNorAbs, _tcast(float3,fSA));
+  // (no need for renormalization, since this vector will be used for sampling cubemap)
+//vReflectDir.xyz = normalize( vReflectDir.xyz);  
+  // ("reflect()" function returns negative vector, so we need to switch .xy, instead of .z,
+  //  but it'll be done a bit later...)
+//vReflectDir.xy = -vReflectDir.xy; 
+
+  // add sharpening bias because of the specifically convoluted mipmaps
+  float3 vReflAbs = abs( vReflectDir.xyz);
+  float fMax = max( vReflAbs.x, max( vReflAbs.y, vReflAbs.z));
+  float fMaxTolerance = fMax -0.001f;
+  float3 vReflMask = step( vReflAbs, _tcast( float3,fMaxTolerance));  // 1 where max, 0 where UV
+  vReflectDir.xyz *= float3(-1,-1,1) / fMax;  // (includes "vReflectDir.xy = -vReflectDir.xy")
+
+  // for a start, base color is just diffuse
+  float3 vBase = g_vBaseColor.rgb; 
+
+  // if base layer has specularity
+#ifdef HAS_SPECULARITY
+
+  // get reflection map using base specularity as a blur factor
+  vReflectDir.w = vR.x * (c_fReflMips-1.0f);
+  vReflectCol = GetReflectionMap( vReflectDir, vReflMask);
+  
+  // calculate final color by lerping between white (diffuse) and specular (reflection) values
+  // (it has to be multiplied by diffuse because the reflection map is divided by the spherical harmonics)
+  vR.x = saturate( vR.x *2.0f -1.0f); // (lean towards reflectivity a bit)
+  vBase *= lerp( vReflectCol, _tcast(float3,1), vR.xxx);
+
+#endif // HAS_SPECULARITY
+
+  // if there is a coating layer
+#ifdef HAS_COATING
+
+  // get reflection map using coating specularity as a blur factor
+  vReflectDir.w = vR.y * (c_fReflMips-1.0f);
+  vReflectCol = GetReflectionMap( vReflectDir, vReflMask);
+
+  // calculate final color by lerping between diffuse and specular (reflection) values
+  float3 vC  = c_vColCoating * g_fCoatMask * g_fCoatMask;
+  float3 vCF = lerp( vC, _tcast(float3,1), _tcast(float3,fF));
+  vR.y = saturate( vR.y *2.0f -1.0f);
+  float3 vCoat = lerp( vC*vReflectCol, vC, vR.yyy);
+  
+  // blend the layers by fresnel
+  vBase = lerp( vBase, vCoat, vCF);
+
+#endif // HAS_COATING
+
+  // done
+  return vBase;
+}
+
+#endif // (HAS_SPECULARITY || HAS_COATING) && HAS_AMBIENT_LIGHT
+
+
+#ifdef HAS_DYNAMIC_LIGHT
+
+// cel shading ramp: 0 on the shaded side, 1 on the lit side, with a sharp (anti-aliased) transition
+inline float CelRamp( const float fNL)
+{
+  // never sharper than about one pixel (avoids aliasing of the terminator line)
+  float fW = max( c_fCelHalfWidth, fwidth( fNL) *0.75f);
+  fW = max( fW, 0.0005f);
+  return smoothstep( c_fCelTerminator-fW, c_fCelTerminator+fW, fNL);
+}
+
+// sharpen shadow-map (and projector) term the same way
+inline float3 CelShadow( const float3 vShadow)
+{
+  float fW = max( c_fCelShadowWidth, 0.0005f);
+  return smoothstep( _tcast(float3,0.5f-fW), _tcast(float3,0.5f+fW), vShadow);
+}
+
+// Evaluate Schlick BRDF function for given incoming light.
+/*
+  Division by PI was removed because lights are pre-divided by PI. Extra division 
+  by 4 in the original formula seems to be an error. (It yields 1/4 of expected
+  result for perfectly diffuse reflector.) So it was removed as well.
+  V and L were removed from denominator of D and from nominators of GV and GL.
+*/
+inline float3 CalcLight( const float3 vLightDirAbs)
+{
+  // cel shaded diffuse light component (instead of lambert): flat lit area with a sharp terminator
+  float  fNL = dot( g_vPixNormalAbs, vLightDirAbs);
+  float  fL  = CelRamp( fNL);
+  float3 vB  = g_vBaseColor.rgb;
+
+  // sharpen shadow edges too (shadowing factor is calculated before this callback and applied after it)
+#ifdef HAS_SHADOW
+  g_vShadowingFactor = CelShadow( g_vShadowingFactor);
+#endif
+
+  // if needs specular component
+#if defined(HAS_SPECULARITY) || defined(HAS_COATING)
+
+  // calculate half vector and light fresnel
+  float3 vH = normalize( g_vViewDirAbs + vLightDirAbs);
+  float fHV = saturate( dot( vH, g_vViewDirAbs));
+  float  fF = pow( 1.0f-fHV, 4.0f) * c_fFresnel;
+
+  // get specularity for the base (.x) and coating (.y) layers
+  float2 vR = g_vBaseCoatSpec- g_vBaseCoatSpec*fF; // lerp( vR, 0, fF);
+  vR = saturate( pow( vR, _tcast(float2,4)) +0.0000001f);
+
+  // calculate dot products, view-normal and half vector
+  // (specular visibility term still uses the physical lambert factor)
+  float fNV = saturate( dot( g_vPixNormalAbs, g_vViewDirAbs));
+  float fVL = sqrt( max( fNV*saturate( fNL), 0.01f));
+  float fHN = dot( vH, g_vPixNormalAbs);
+
+  // spread specularity
+  float fDT = 0.00001f;
+  fDT += fwidth( fHN) *0.5f;
+  float2 vT2 = saturate( fHN+ fDT*float2(-1,1));
+  fDT = vT2.y-vT2.x +0.000001f;
+
+  // evaluate the base (.x) and coating layer (.y) diffuse factors
+  float4 vI2 = (vT2.xyxy*vR.xxyy) / (vT2.xyxy*(vR.xxyy-1.0f)+1.0f);
+  vI2 = saturate( vI2);
+  float2 vD = (vI2.yw-vI2.xz) / (fDT * lerp( _tcast(float2,fVL), _tcast(float2,1), vR.xy));
+
+  // if base layer has specularity
+  #ifdef HAS_SPECULARITY
+    // apply it now
+    vB *= vD.x;
+  #endif
+
+  // if there is a coating layer (specularity assumed)
+  #ifdef HAS_COATING
+    // return blended result between the layers
+    float3 vC = c_vColCoating * g_fCoatMask * g_fCoatMask;
+    vB = lerp( vB, vD.yyy, vC);
+  #endif
+
+#endif // (HAS_SPECULARITY || HAS_COATING)
+
+  // mix eventual specular with (cel shaded) diffuse
+  return vB *fL;
+}
+
+
+#endif // HAS_DYNAMIC_LIGHT
+#ifdef HAS_AMBIENT_LIGHT
+
+
+// calculate ambient light intensity
+inline float3 AmbientLight( const float2 vLMapUV, const float3 vDiffuseLight, const float fFakeMask)
+{
+  // light color is self-illumination 
+  float3 vLightColor = c_vColIllum;
+  // modulated by HDR lightmap
+  vLightColor *= SampleRGBE( t_sLightMap, s_tLightMap, vLMapUV);
+  // and overlayed by diffuse light, flattened towards its average (no soft ambient shading)
+  vLightColor += lerp( vDiffuseLight, c_vCelFlatAmbient.rgb, _tcast(float3, c_fCelFlatness*c_vCelFlatAmbient.a));
+  // all of it is the shaded part of the surface: tint and scale it
+  vLightColor *= c_vCelShadeColor *c_fCelShadeIntensity;
+
+  // modulate by ambient occlusion
+  vLightColor *= g_vIllumAmbOccSample.a;
+
+  // attenuate ambient occlusion by 50% for direct lights
+  // and modulate illumination (fast-)light influence by it
+  g_vIllumAmbOccSample.a = g_vIllumAmbOccSample.a *0.5f +0.5f;
+  float3 vIllumLight = g_vIllumAmbOccSample.rgb *g_vIllumAmbOccSample.a;
+
+  // if has ambient specular component
+#if defined(HAS_SPECULARITY) || defined(HAS_COATING)
+
+  // calculate "specularity" from reflection map
+  vLightColor *= CalcAmbientReflection();
+  // and add illumination (fast-)light modulated by diffuse texture
+  vLightColor += vIllumLight * g_vBaseColor.rgb;
+
+  // if no specularity
+#else
+
+  // add illumination (fast-)light
+  vLightColor += vIllumLight;
+  // and modulate by diffuse (texture) color
+  vLightColor *= g_vBaseColor.rgb;
+
+#endif
+#ifdef HAS_NORMAL_MAP
+
+  // need some fake bumps on diffuse lightmapped surfaces no matter the actual lighting
+  float fFakeAtt = saturate( fFakeMask+c_fFakeLightMask) *c_fFakeLightAtt;
+  float2 vRawNorTan = g_vRawNorDet.xy *fFakeAtt +g_vRawNorDet.zw;
+  float fFakeLightMul = vRawNorTan.x - vRawNorTan.y;
+  // apply fake bumps (if any; flattened as the ambient)
+  vLightColor += vLightColor*fFakeLightMul*(1.0f-c_fCelFlatness);
+
+#endif
+
+  // final color
+  return vLightColor;
+}
+
+#endif // HAS_AMBIENT_LIGHT
+
+
+
+// MAIN RENDERING PASS
+
+PS_ENTRY( CellShadedPS)
+{
+  PS_VR_INIT;
+  // prepare vars for VR
+  g_vViewPosAbsPix = VRSelect(c_vViewPosAbsPixLeft, c_vViewPosAbsPixRight);
+
+  // calculate pixel-view distance(^2!) and direction
+
+  g_vViewDirAbs = g_vViewPosAbsPix.xyz - PS_IN( vVexPosAbs.xyz);
+  float fPixDist2 = dot( g_vViewDirAbs, g_vViewDirAbs);
+  g_vViewDirAbs *= rsqrt( fPixDist2); // ==normalize
+
+  // cache screen raster coordinates
+  SetRasterPos( PS_IN( vScreenPos.xy), Multiview1oScreenSize(c_v1oScreenSize));
+
+  // prepare textures' coordinates
+  float2 vMaskUV = PS_IN( vLitMaskUV.zw);
+  float4 vNormDetOfsUV = PS_IN( vNormDetUV);
+  float4 vBasGlosOfsUV = PS_IN( vBasGlosUV);
+  float4 vOffsetAmbDepthMask;
+
+  // and if rendering with parallax mapping
+  #if !defined(BAKING) && defined(HAS_PARALLAX)
+
+    // calc attenuation by distance for height
+    float fHeightAtt = 1.0f- saturate( fPixDist2*c_f1oHeightMaxDist2); 
+
+    // transform view direction to tangent space
+    float3 vViewDirTan = _mulT( PS_IN( mTanToAbs), g_vViewDirAbs);  // (already normalized!)
+    // calculate parallaxing offset
+    vOffsetAmbDepthMask = GetMappingOffset( t_sHeightMap, s_tHeightMap, vNormDetOfsUV.xy, fHeightAtt, vViewDirTan, fPixDist2);
+
+    // apply that offset to texture coords
+  #ifdef HAS_NORMAL_MAP
+    // for normal-map
+    vNormDetOfsUV.xy += vOffsetAmbDepthMask.xy;
+  #endif
+    // (unstretch offset)
+    vOffsetAmbDepthMask.xy *= c_vNormMapUnstretch;
+  #ifdef HAS_NORMAL_MAP
+    // for detail-map
+    vNormDetOfsUV.zw += vOffsetAmbDepthMask.xx*c_vDetailOffsetRatio.xy + vOffsetAmbDepthMask.yy*c_vDetailOffsetRatio.zw;
+  #endif
+    // and blend-mask ratio
+    vMaskUV += vOffsetAmbDepthMask.xx*c_vMaskOffsetRatio.xy + vOffsetAmbDepthMask.yy*c_vMaskOffsetRatio.zw;
+    // and/or base (diffuse) texture and gloss mask
+    vBasGlosOfsUV += vOffsetAmbDepthMask.xxxx*c_vBaseGlossOfsRatioX + vOffsetAmbDepthMask.yyyy*c_vBaseGlossOfsRatioY;
+
+  // if no parallaxing
+  #else
+
+    // just sample ambient depth texture
+    vOffsetAmbDepthMask.zw = texSample2D( t_sHeightMap, s_tHeightMap, vNormDetOfsUV.xy).gb;
+
+  #endif
+
+  // sample mask alpha usage for blending and shading
+  float4 vBlendMaskTex = texSample2D( t_sBlendMask, s_tBlendMask, vMaskUV);
+  LinearSpace( vBlendMaskTex.rgb);
+  // "shade" (multiply 2x) mode in linear space
+  vBlendMaskTex.rgb *= LINEAR_2; 
+  // (attenuated)
+  vBlendMaskTex.rgb = lerp( _tcast(float3,1), vBlendMaskTex.rgb, _tcast(float3,c_fShadeStrength));  
+
+  // sample diffuse texture
+  float4 vBaseTex = texSample2D( t_sBase, s_tBase, vBasGlosOfsUV.xy);
+  LinearSpace( vBaseTex.rgb);
+  // modulate diffuse color by texture and vertex colors
+  g_vBaseColor = vBaseTex * c_vColBase * PS_IN( vVexColor);
+
+  // attenuate colorizer by some (any?) amount via alpha value
+  float fColorize = (1.0f-vBaseTex.a) * c_fColorizer;
+  g_vBaseColor.rgb = lerp( g_vBaseColor.rgb, vBaseTex.rgb, _tcast( float3,fColorize));
+
+  // also sample gloss mask (will be used later, channel by channel)
+  g_vGlossTex = texSample2D( t_sGlossMask, s_tGlossMask, vBasGlosOfsUV.zw);
+
+  // if has specularity or coating layer,
+  #if defined(HAS_SPECULARITY) || defined(HAS_COATING)
+
+    // combine their constant specular factors with gloss mask
+    g_vBaseCoatSpec = 1.0f- c_vBaseCoatSpec *g_vBaseCoatSpec;
+  #endif
+
+  // shade base color by blend mask texel
+  g_vBaseColor *= vBlendMaskTex;
+
+  // if has normal map
+  #ifdef HAS_NORMAL_MAP
+
+    // calc attenuation by distance for bumps
+    float fBumpAtt = 1.0f- saturate( fPixDist2*c_f1oNormalMaxDist2); 
+    // (.x=all bumps attenuation, .y=only detail bump attenuation)
+    float2 vNorDetAtt = float2( fBumpAtt, g_fDetAtt); 
+
+    // sample normal (and detail) maps' normal value
+    g_vPixNormalTan = GetBumpedNormal( t_sNormalMap, s_tNormalMap, t_sDetailMap, s_tDetailMap, vNormDetOfsUV, vNorDetAtt, g_vRawNorDet);
+
+    #ifdef HAS_DYNAMIC_LIGHT
+      // and transform it to absolute space
+      g_vPixNormalAbs = _mulT( g_vPixNormalTan, PS_IN( mTanToAbs));
+    #else
+      // or just use tangent space
+      g_vPixNormalAbs = g_vPixNormalTan;
+    #endif
+
+  // if doesn't have normal map
+  #else
+
+    // normal is from vertex then
+    g_vPixNormalTan = float3(0,0,1);
+    #if defined(HAS_PARALLAX)
+      g_vPixNormalAbs = PS_IN( mTanToAbs[2]);
+    #else
+      g_vPixNormalAbs = PS_IN( vNormalAbs);
+    #endif
+  #endif // HAS_NORMAL_MAP
+
+  #ifdef HAS_DYNAMIC_LIGHT
+    // renormalize pixel normal
+    g_vPixNormalAbs = normalize( g_vPixNormalAbs);
+  #endif
+
+  // adjust facing sign
+  float fInPolyFace = PS_FACE * c_fFacingness;
+  #ifdef HAS_DYNAMIC_LIGHT
+    // and possibly flip normal (for 2-sided lighting)
+    g_vPixNormalAbs = FlipNormal( g_vPixNormalAbs, fInPolyFace);
+  #endif
+
+  // final output gets accumulated here
+  float4 vOutColor = float4( 0,0,0, g_vBaseColor.a);
+
+  // if not baking
+#ifndef BAKING
+
+  // sample fast-lights and ambient-occlusion texture
+  g_vIllumAmbOccSample = texSample2D( t_sIllumAmbOcc, s_tIllumAmbOcc, GetRasterClipPos());
+  g_vIllumAmbOccSample = g_vIllumAmbOccSample *c_vMaskFLAO.xxxz +c_vMaskFLAO.yyyw;
+
+#endif // FLAO
+#ifdef HAS_AMBIENT_LIGHT
+
+  // if has pixel normal and uses specularity of some sort
+  #if defined(HAS_NORMAL_MAP) && (defined(HAS_SPECULARITY) || defined(HAS_COATING))
+
+    // get vertex normal also (for attenuation)
+    #if defined(HAS_PARALLAX) || defined(HAS_DYNAMIC_LIGHT)
+      // (from tangent matrix)
+      g_vVexNormalAbs = PS_IN( mTanToAbs[2]);
+    #else
+      // (or from vertex shader)
+      g_vVexNormalAbs = PS_IN( vNormalAbs);
+    #endif
+    // renormalize it
+    g_vVexNormalAbs = normalize( g_vVexNormalAbs);
+    // and eventually flip (for 2-sided lighting)
+    g_vVexNormalAbs = FlipNormal( g_vVexNormalAbs, fInPolyFace);
+
+  #endif
+
+  // apply ambient light
+  vOutColor.rgb += AmbientLight( PS_IN( vLitMaskUV.xy), PS_IN( vDiffuseLit), vOffsetAmbDepthMask.w);
+
+#else // HAS_AMBIENT_LIGHT
+
+  // attenuate ambient occlusion by 50% for direct lights
+  g_vIllumAmbOccSample.a = g_vIllumAmbOccSample.a *0.5f +0.5f;
+
+#endif
+#ifdef HAS_DISTANT_LIGHT
+
+  // apply (shadowed) distant light
+  float3 vDistColor = DistantLight( PS_IN( vVexPosAbs));
+  // add to final color (modulated by ambient occlusion)
+  vOutColor.rgb += vDistColor *g_vIllumAmbOccSample.a;
+
+#elif defined(HAS_SPOT_LIGHT)
+
+  // spot (modulated by ambient occlusion)
+  vOutColor.rgb += SpotLight( PS_IN( vVexPosAbs)) *g_vIllumAmbOccSample.a;
+
+#elif defined(HAS_OMNI_LIGHT)
+
+  // omni (modulated by ambient occlusion)
+  vOutColor.rgb += OmniLight( PS_IN( vVexPosAbs)) *g_vIllumAmbOccSample.a;
+
+#endif  // LIGHTS
+
+  // apply depth and ambient occlusion from 'height' map
+  vOffsetAmbDepthMask.z = lerp( 1.0f, vOffsetAmbDepthMask.z, vBlendMaskTex.a);
+  vOutColor.rgb *= GetDepthOcclusion( vOffsetAmbDepthMask.z);
+
+  // calculate translucency fresnel for edge smooting
+  // (but with a bit less influence; ^2 instead of ^5!)
+  float fNV = abs( dot( g_vPixNormalAbs, g_vViewDirAbs));
+  float fF  = 1.0f- saturate( fNV*fNV *c_vEdgeSmoothing.x +c_vEdgeSmoothing.y);
+  // and apply it to final color
+  vOutColor = lerp( vOutColor, c_vLerpDest, c_vLerpMask*fF);
+
+  // if baking
+#ifdef BAKING
+
+  // in LDR
+  if( c_fBakeGamma != 0.0f) {
+
+    // apply gamma
+    vOutColor.rgb = pow( vOutColor.rgb, _tcast(float3,0.4545f));
+  }
+  // in RGBE
+  if( c_fBakeRGBE != 0.0f) {
+
+    // convert output
+    vOutColor.rgba = PackRGBE( vOutColor.rgb);
+  }
+
+  // if not baking and has fog and/or haze
+#elif defined(APPLY_FOZE)
+
+  // apply (lerp) fog and haze with color and/or alpha
+  vOutColor = ApplyFoze( vOutColor, PS_IN( vFozeAmount));
+
+#endif // BAKING
+
+  // output magenta for NaN or Inf values
+  ColorizeWrongOutput( vOutColor);
+
+  // clamp to useable range 
+  // (some HW has problems with denormals in the frame buffer, so we clamp on the bottom side as well)
+  vOutColor.rgb = clamp( vOutColor.rgb, SMALL_HDR_FLOAT, MAX_HDR_FLOAT);
+  // compress alpha range
+  // (for purpose of transparency anti-aliasing with proper alpha-tresholding)
+  vOutColor.a = saturate( vOutColor.a *c_vAlphaRange.x +c_vAlphaRange.y);
+  // == vOutColor.a = saturate( (vOutColor.a-(c_vAlphaRange.x-0.001625f)) / ((c_vAlphaRange.x+0.001625f)-(c_vAlphaRange.x-0.001625f)) );
+  // == sat( a-min/delta) == sat( a/delta - min/delta)
+  PS_OUT( vOutColor);
+}

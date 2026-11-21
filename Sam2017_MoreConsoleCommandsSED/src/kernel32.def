@@ -1,0 +1,21 @@
+LIBRARY kernel32.dll
+EXPORTS
+CloseHandle
+CreateFileW
+DisableThreadLibraryCalls
+FlushInstructionCache
+GetCurrentProcess
+GetEnvironmentVariableW
+GetLastError
+GetModuleFileNameW
+GetModuleHandleExW
+GetModuleHandleW
+GetProcAddress
+LoadLibraryW
+OutputDebugStringW
+SetEnvironmentVariableW
+VirtualAlloc
+VirtualFree
+VirtualProtect
+VirtualQuery
+WriteFile
