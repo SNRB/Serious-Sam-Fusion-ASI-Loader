@@ -1,33 +1,19 @@
 # Serious Sam Fusion 2017 ASI Loader
 A DLL hook for Serious Sam 2017's Unrestricted game and Serious Editor allowing loading ASI plugins into exe, plus a few scrips.
 
-Tested in Singleplayer on custom levels, compatible with save games, does not alter entity formats aside from 2 plugins mentioned at the very bottom of the list.
-
-❗❗❗NOT YET TESTED IN MULTIPLAYER❗❗❗
+Tested in Singleplayer and Multiplayer on custom levels, compatible with save games, does not alter entity formats aside from 2 plugins mentioned at the very bottom of the list.
 
 # Compatibility
-works on 440323 public Steam version (current ATM), plugins simply refuse to load on non-matching versions, loader and plugins only affect unrestricted exe and the editor, I will not provide support in altering non-moddable version of the game.
+works on update from 22.11.2026 (current ATM), plugins simply refuse to load on non-matching versions, loader and plugins only affect unrestricted exe and the editor, I will not provide support in altering non-moddable version of the game.
+
+Plugins do have support code for legacy build as well, but i will not longer provide patches or support for these versions.
 
 # Installing / Uninstalling
-Download Fusion-ASI-Loader-v1.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder, loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder, no plugins are dependend on each other with exception of Game plugins (noted in next point)
+Download Fusion-ASI-Loader.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder, loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder, no plugins are dependend on each other
 
 To uninstall plugins temove them from the folder, and to uninstall loader completely simply remove the .dll library
 
-# Game plugins VS Editor plugins:
-Some plugins are designed to modify only the Editor, some are designed to patch both game and the editor with the same content
-
-❗❗❗GAME PLUGINS REQUIRE Game-ExeSigBypass_v1 PLUGIN TO WORK❗❗❗
-
-without it, your main game exe will crash on launch
-
-# Current Editor plugins:
-
-## NETRICSA Messages Restore
-Restores editing NETRICSA messages the way it was possible in Serious Sam HD, functions are identical, SS3 messages will read garbage, unused data but can be safely edited and saved.
-
-<img width="290" alt="2026-11-18 20_39_42-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/da7623a5-b133-4b0b-9da4-345d637fe339" />
-
-<img width="700" height="395" alt="2026-11-18 20_44_10-Simulation" src="https://github.com/user-attachments/assets/4480d74b-ebbf-4396-af1c-5fad7a6d59a0" />
+# Current plugins:
 
 ## More Console Commands
 Adds variety of console commands linked to cvars that are locked/read-only by default:
@@ -79,24 +65,6 @@ Remains on upon restart and is saved to SeriousEditor.ini
 
 <img width="392" alt="2026-11-18 20_50_29-Simulation" src="https://github.com/user-attachments/assets/183ea930-6428-483a-99d1-76a013a36b1a" />
 
-
-## Editor QOL Tools
-To be expanded - a collection of minor patches to SED's various editors.
-
-Currently has only 1 modification:
-### Skeleton Editor
-- Setting parent for multiple selected bones now properly parents them all to that new bone, instead of just the first selected one.
-
-## Anim Button Rebind
-A tiny thing, rebinds playback button from spacebar to backspace because it's been getting on my nerves.
-
-# Current Game plugins:
-
-## ExeSigBypass
-Required for ALL Game plugins to load in the actual game's exe!
-
-Bypasses game crash that unrestricted exe triggers upon detecting modification to itself, left for god knows what reasons as this verification check has been removed in the very next internal release and was never present in the editor to begin with.
-
 ## Cellshading
 Adds new shader of "Cellshading" into the shader list when creating material, reusing code of Standard shader.
 
@@ -112,6 +80,9 @@ https://github.com/user-attachments/assets/77121eac-f190-4663-b97c-12bc294ba392
 
 https://github.com/user-attachments/assets/0126a841-073d-49d5-8a8b-9ac3cde729b9
 
+## Load Unsigned
+Allows loading files with incorrect/missing signature, basically skipping usage of SeSigner, also allows loading world files saved with res_bSaveInTextFormat and may allow using SED's "finalize" option that removes Edit Data from files.
+
 ## SS4 MultipathMarker
 Backport of Serious Sam 4's MultipathMarker entity - a variant of PathMarker that allows selecting multiple next path markers that puppet will randomly pick upon reaching the marker.
 
@@ -121,8 +92,15 @@ Worlds with MultipathMarkers can be safely loaded in plugin-less game and editor
 
 <img width="780" alt="2026-11-18 22_06_20-Serious Editor 2017 -  64-bit  -  SE2017_PC_dev  -  SeriousSam2017  -  Beta  - C" src="https://github.com/user-attachments/assets/84ad94de-2776-49bb-85b9-a380ab07fb65" />
 
-## Load Unsigned
-Allows loading files with incorrect/missing signature, basically skipping usage of SeSigner, also allows loading world files saved with res_bSaveInTextFormat and may allow using SED's "finalize" option that removes Edit Data from files.
+## Editor QOL Tools
+To be expanded - a collection of minor patches to SED's various editors.
+
+Currently has only 1 modification:
+### Skeleton Editor
+- Setting parent for multiple selected bones now properly parents them all to that new bone, instead of just the first selected one.
+
+## Anim Button Rebind
+A tiny thing, rebinds playback button from spacebar to backspace because it's been getting on my nerves.
 
 ## SS2 Auto Patrol
 ❗❗❗IMPORTANT: Changes entity format. Worlds saved with this plugin installed require plugin, or md_bLoadIncompatibleTypes = 1 to load❗❗❗
@@ -162,7 +140,7 @@ SN_TestLevelforASIStuff_NOCUSTOM.gro is the same level WITHOUT the two scripts t
 
 Each plugin and loader are independend, so they were sorted to folders with their own build executables and sources.
 
-ASI_Loader, AnimButtonTweak, CellShaded, MultiPathMarker and SkipExeSignatureCheck may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as standalone ASI Plugins.
+ASI_Loader, AnimButtonTweak, CellShaded and MultiPathMarker may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as standalone ASI Plugins.
 
 # Special thanks to:
 Nigmas for providing informations on Fusion's memory cvars to allow More Console Commands plugin to exist
