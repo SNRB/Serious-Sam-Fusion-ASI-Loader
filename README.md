@@ -1,5 +1,5 @@
 # Serious Sam Fusion 2017 ASI Loader
-A DLL hook for Serious Sam 2017's Unrestricted game and Serious Editor allowing loading ASI plugins into exe, plus a few scrips.
+A DLL hook for Serious Sam 2017's Unrestricted game and Serious Editor allowing loading ASI plugins into exe, plus a few scripts.
 
 Tested in Singleplayer and Multiplayer on custom levels, compatible with save games, does not alter entity formats aside from 2 plugins mentioned at the very bottom of the list.
 
