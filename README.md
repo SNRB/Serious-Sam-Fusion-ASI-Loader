@@ -143,8 +143,10 @@ Each plugin and loader are independend, so they were sorted to folders with thei
 ASI_Loader, AnimButtonTweak, CellShaded and MultiPathMarker may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as standalone ASI Plugins.
 
 # Special thanks to:
+
 Nigmas for providing informations on Fusion's memory cvars to allow More Console Commands plugin to exist
-Andeiki and Shockwave for testing the plugins on their games.
+
+Andeiki, Shockwave and one more friend for testing the plugins on their games.
 
 # AI
 Yes, AI disassembled the exe and wrote plugins, because of course it did, stuff was firmly tested over weeks of use on different machines to confirm stability of this vibecode. Original readme files written by AI for each plugin has been left in the source code for help in research and reverse engineering of the code.
