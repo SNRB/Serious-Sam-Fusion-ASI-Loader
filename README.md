@@ -9,9 +9,11 @@ works on update from 22.11.2026 (current ATM), plugins simply refuse to load on 
 Plugins do have support code for legacy build as well, but i will not longer provide patches or support for these versions.
 
 # Installing / Uninstalling
-Download Fusion-ASI-Loader.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder, loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder, no plugins are dependend on each other
+Download ASI-Loader.rar and any plugins you want/need and drop the contents into main Serious Sam Fusion folder.
 
-To uninstall plugins temove them from the folder, and to uninstall loader completely simply remove the .dll library
+loader is a single .dll library that hooks upon launching the game/exe and plugins are singlular script files loaded from bin/x64/plugins folder, no plugins are dependend on each other.
+
+To uninstall plugins remove them from the folder, and to uninstall loader completely simply remove the .dll
 
 # Current plugins:
 
