@@ -142,6 +142,8 @@ Each plugin and loader are independend, so they were sorted to folders with thei
 
 ASI_Loader, AnimButtonTweak, CellShaded and MultiPathMarker may have differences in the way source code is written compared to further plugins, that is due to them being initially embedded modifications into EXE before being re-written as standalone ASI Plugins.
 
+NetricsaMessagesSED is for preservation only, a now obsolete plugin that restored SSHD's way of editing NETRICSA messages.
+
 # Special thanks to:
 
 Nigmas for providing informations on Fusion's memory cvars to allow More Console Commands plugin to exist
