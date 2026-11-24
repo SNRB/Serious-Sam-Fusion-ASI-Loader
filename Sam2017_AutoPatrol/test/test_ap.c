@@ -133,6 +133,12 @@ static void StartTactic(Obj *pup, Obj *tactic)
 
 static Target g_fakeT;
 
+/* the real address tables (for the stream layout of each executable) */
+static const Target g_targets[] = {
+#include "../src/targets.inc"
+};
+#define N_TARGETS ((int)(sizeof g_targets / sizeof g_targets[0]))
+
 static void ResetWorld(void)
 {
     g_world.ents = g_ents; g_world.count = 0;
@@ -339,15 +345,23 @@ int main(int argc, char **argv)
     }
 
     /* --- 8. meta data stream --------------------------------------------- */
-    if (argc >= 3) {
-        static u64 src[STREAM_QWORDS];
+    /* test_ap <original stream> <new stream> <index of the executable in targets.inc> */
+    if (argc >= 4) {
+        int ti = atoi(argv[3]);
+        if (ti < 0 || ti >= N_TARGETS) { printf("bad target index %s\n", argv[3]); return 2; }
+        const Target *R = &g_targets[ti];
+        g_fakeT.streamQwords = R->streamQwords; g_fakeT.idxFormat = R->idxFormat; g_fakeT.idxNMembers = R->idxNMembers;
+        g_fakeT.idxBoolRec = R->idxBoolRec; g_fakeT.idxInsert = R->idxInsert;
+        static u64 src[STREAM_QWORDS_MAX];
+        u32 sq = R->streamQwords;
+        CHECK(sq <= STREAM_QWORDS_MAX, "stream fits");
         FILE *in = fopen(argv[1], "rb");
-        if (!in || fread(src, 8, STREAM_QWORDS, in) != STREAM_QWORDS) { printf("cannot read %s\n", argv[1]); return 2; }
+        if (!in || fread(src, 8, sq, in) != sq) { printf("cannot read %s\n", argv[1]); return 2; }
         fclose(in);
         u32 nq = BuildStream(src);
-        CHECK(nq == NEW_QWORDS, "stream qwords %u", nq);
-        CHECK(g_stream[IDX_FORMAT] == NEW_FORMAT && g_stream[IDX_NMEMBERS] == OLD_NMEMBERS + 1, "header");
-        CHECK(memcmp(g_stream + IDX_INSERT + MEMBER_QWORDS, src + IDX_INSERT, (STREAM_QWORDS - IDX_INSERT) * 8) == 0, "tail");
+        CHECK(nq == sq + MEMBER_QWORDS, "stream qwords %u", nq);
+        CHECK(g_stream[R->idxFormat] == NEW_FORMAT && g_stream[R->idxNMembers] == OLD_NMEMBERS + 1, "header");
+        CHECK(memcmp(g_stream + R->idxInsert + MEMBER_QWORDS, src + R->idxInsert, (sq - R->idxInsert) * 8) == 0, "tail");
         FILE *out = fopen(argv[2], "wb");
         fwrite(g_stream, 8, nq, out);
         const char *strs[3] = {s_memDisp, s_memName, s_memId};

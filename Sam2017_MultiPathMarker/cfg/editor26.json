@@ -1,0 +1,296 @@
+{
+ "symbols": {
+  "eng_PtrArray_SetAllocation": "0x1416910b0",
+  "eng_RegisterShadersTail": "0x14046af80",
+  "eng_StandardShaderArgs_Fn800": "0x140495520",
+  "eng_StandardShaderArgs_Construct": "0x140481be0",
+  "eng_StandardShaderArgs_Destruct": "0x140482560",
+  "eng_StandardShaderArgs_CopyFrom": "0x1404828e0",
+  "eng_StandardShaderArgs_Validate": "0x1404832b0",
+  "eng_StandardShaderArgs_Fn80": "0x140487250",
+  "eng_StandardShaderArgs_Fn1000000": "0x14046bb00",
+  "eng_Shader_ReleasePrograms": "0x1404a21c0",
+  "eng_LoadTextFile": "0x1404a39d0",
+  "eng_Entity_ReportWarning": "0x1404b5b50",
+  "eng_Entity_GetProperties": "0x1404b5bb0",
+  "eng_Props_Update": "0x1404b95e0",
+  "eng_Prim_AddArrow": "0x1404bf4d0",
+  "eng_StandardShader_Construct": "0x1404e3430",
+  "eng_HasLights": "0x1405170f0",
+  "eng_ShaderArgsCache_Construct": "0x1405358b0",
+  "eng_ShaderArgVal_Construct": "0x140535980",
+  "eng_ShaderArgsCache_Destruct": "0x140535a40",
+  "eng_ShaderArgVal_Destruct": "0x140535ab0",
+  "eng_Shader_CompileProgram": "0x140556b50",
+  "eng_Shader_GetDefines": "0x1405f1800",
+  "eng_meta_Destruct": "0x1414e8b40",
+  "eng_meta_DeleteObject": "0x1401cb360",
+  "eng_MetaPointer_Set": "0x140958510",
+  "eng_Warning": "0x140b1f6f0",
+  "eng_meta_NewArray": "0x140b20b40",
+  "eng_meta_NewObject": "0x140b20c00",
+  "eng_Free": "0x140b20f70",
+  "eng_meta_ArrayCount": "0x140b214b0",
+  "eng_meta_ReleaseObject": "0x140b216e0",
+  "eng_CString_Assign": "0x140b25b50",
+  "eng_CString_SetChars": "0x140b25c30",
+  "eng_CString_Free": "0x140b26690",
+  "eng_Name_Set": "0x140b2a840",
+  "eng_HandleToPointer": "0x140b2bb90",
+  "eng_PointerToHandle": "0x140b2bf30",
+  "eng_meta_register": "0x140b2e0f0",
+  "eng_meta_FindType": "0x140b2e260",
+  "eng_meta_IsDerivedFrom": "0x140b2fd40",
+  "eng_meta_New": "0x140b2fe50",
+  "eng_ErrorScope_Begin": "0x140b43680",
+  "eng_ErrorScope_End": "0x140b43690",
+  "eng_RegisterShader": "0x140b46190",
+  "eng_RegisterEmbeddedFile": "0x140b667a0",
+  "eng_PathMarkerEntity_Construct": "0x140d50c80",
+  "eng_PathMarkerProps_Construct": "0x140ee9e10",
+  "eng_PathMarkerEntity_Destroy": "0x140ee9e50",
+  "eng_PathMarkerProps_Destroy": "0x140ee9f00",
+  "eng_PathMarkerEntity_ApplyProps": "0x140eea950",
+  "eng_PathMarkerProps_Unlink": "0x140eea9b0",
+  "eng_PathMarkerEntity_Link": "0x140eeaa40",
+  "eng_PathWalker_Turn": "0x141037250",
+  "eng_PathWalker_Next": "0x141037360",
+  "eng_HandleArray_SetAllocation": "0x14056a370",
+  "eng_meta_DynamicPointer": "0x14125ec20",
+  "eng_atexit": "0x141afb4a8",
+  "eng_DeleteSized": "0x141afb1fc",
+  "eng_vtblShaderArgValFLOAT": "0x141c0c9d8",
+  "eng_vtblShaderArgValCOLOR": "0x141c0ca48",
+  "eng_idNoUVMap": "0x141f17d30",
+  "eng_gbFlipPrimitive": "0x142902fc4",
+  "eng_bPrecompileShaders": "0x142903150",
+  "eng_iParallaxMapping": "0x142929f00",
+  "eng_iRandomMul": "0x1429db780",
+  "eng_iRandomShift": "0x1429db784",
+  "eng_pShaderManager": "0x142ad4a30",
+  "eng_ptShaderType": "0x142adfa68",
+  "eng_astrLightPermutation": "0x142b10790",
+  "eng_ecShaders": "0x14323ea58",
+  "eng_ptPathMarkerEntityType": "0x1432d7158"
+ },
+ "vtable_patches": [
+  {
+   "at": "0x14210f5c8",
+   "expect": "0x140eeaa40",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x142185a90",
+   "expect": "0x140eeaa40",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x1421a7a90",
+   "expect": "0x140eeaa40",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x142351460",
+   "expect": "0x140eeaa40",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x14210f6e0",
+   "expect": "0x140eeab60",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x1421851f0",
+   "expect": "0x140eeab60",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x142185ba8",
+   "expect": "0x140eeab60",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x1421a24e0",
+   "expect": "0x140eeab60",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x1421a7ba8",
+   "expect": "0x140eeab60",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x14210f9c8",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x1421854d8",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x142185e90",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x1421a27c8",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x1421a7e90",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x142351860",
+   "expect": "0x140eea760",
+   "to": "MPM_Entity_GetPathMarkers",
+   "what": "CPathMarkerEntity vtbl[164] markers of the path (with branches)"
+  },
+  {
+   "at": "0x142200920",
+   "expect": "0x141037360",
+   "to": "MPM_PathWalker_Next",
+   "what": "path walker vtbl[23]: random next marker at a MultiPath marker"
+  },
+  {
+   "at": "0x142200928",
+   "expect": "0x141037250",
+   "to": "MPM_PathWalker_Turn",
+   "what": "path walker vtbl[24]: random next marker at a MultiPath marker"
+  },
+  {
+   "at": "0x14210f3c8",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  },
+  {
+   "at": "0x142184ed8",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  },
+  {
+   "at": "0x142185890",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  },
+  {
+   "at": "0x1421a21c8",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  },
+  {
+   "at": "0x1421a7890",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  },
+  {
+   "at": "0x142351260",
+   "expect": "0x140eea9b0",
+   "to": "MPM_Props_Unlink",
+   "what": "CPathMarkerProperties vtbl[15] deleted marker: relink its previous marker"
+  }
+ ],
+ "call_patches": [
+  {
+   "at": "0x140f7c816",
+   "expect": "0x140eeaa40",
+   "opcode": "0xe9",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x140f9c242",
+   "expect": "0x140eeaa40",
+   "opcode": "0xe9",
+   "to": "MPM_PathMarkerEntity_Link",
+   "what": "CPathMarkerEntity vtbl[36] link: keep a MultiPath previous marker"
+  },
+  {
+   "at": "0x141251f27",
+   "expect": "0x140eeab60",
+   "opcode": "0xe8",
+   "to": "MPM_Entity_RenderPrimitive",
+   "what": "CPathMarkerEntity vtbl[71] editor primitive: arrows to all next markers"
+  },
+  {
+   "at": "0x14046ba63",
+   "expect": "0x14046af80",
+   "opcode": "0xe9",
+   "to": "CS_Register",
+   "what": "end of the shader registration (tail call): register the CellShaded shader too"
+  }
+ ],
+ "sinit_hooks": [
+  {
+   "at": "0x140eeb9a7",
+   "to": "MPM_RegisterMeta",
+   "what": "path marker metadata registration (CPathMarkerProperties / CPathMarkerEntity)"
+  }
+ ],
+ "vtable_fills": [
+  {
+   "sym": "g_csArgsVtbl",
+   "base": "0x141cc75e8",
+   "n": 13
+  },
+  {
+   "sym": "g_csShaderVtbl",
+   "base": "0x141cc7650",
+   "n": 30
+  }
+ ],
+ "data_patches": [],
+ "clones": [
+  {
+   "sym": "CS_StandardRender",
+   "what": "CStandardShader vtbl[20] render, copied for CCellShadedShader",
+   "start": "0x140484130",
+   "size": "0x28c1",
+   "redirect": {
+    "0x1405170f0": "CS_CopyHook_HasLights",
+    "0x140486e00": "CS_GetProgram",
+    "0x141c15c30": "g_csName",
+    "0x142ac91c0": "CS_aPrograms"
+   },
+   "replace": [
+    [
+     "0x14048659a",
+     "41b916000000",
+     "41b919000000"
+    ],
+    [
+     "0x1404867b5",
+     "41b916000000",
+     "41b919000000"
+    ]
+   ]
+  }
+ ],
+ "base_props_vtbl": "0x14210f350",
+ "props_vtbl_entries": 43,
+ "base_entity_vtbl": "0x14210f4a8",
+ "entity_vtbl_entries": 165
+}

@@ -1,8 +1,22 @@
-Sam2017_AutoPatrol.asi  -  version 1.0
+Sam2017_AutoPatrol.asi  -  version 1.1
 "Auto patrol" for all character entities
-Serious Sam Fusion 2017, build of 7 June 2019:
+Serious Sam Fusion 2017, builds of 7 June 2019 and 19 November 2026:
     Sam2017_SeriousEditor.exe and Sam2017_Unrestricted.exe
 ==========================================================================
+
+CHANGES
+-------
+1.1  Works with the updated executables of 19 November 2026 (and still with
+     the ones of 7 June 2019); the plugin picks the right addresses for the
+     exe it is loaded into. Everything it changes is the same code in the new
+     build (byte for byte apart from addresses), only moved. The type
+     description it extends is 0x60 qwords longer in the new build (other
+     types in it changed), while the CPuppetProperties record in it is
+     unchanged (still format 151, 0x188 bytes, padding at 0x184), so the new
+     member is added in exactly the same way; the length of the description
+     and the positions the plugin edits in it are now per-build values in
+     src\targets.inc. Levels saved with 1.0 load with 1.1 and the other way
+     round (the property is the same: ID 152, format 152), in both builds.
 
 INSTALL
 -------
@@ -106,5 +120,9 @@ HOW IT WORKS (all in memory, the exe files are not modified)
 The source is in the "source" folder: src\ is the plugin (C, no runtime
 library, built with clang + lld-link, see build.sh), test\ is a native test of
 the logic (with mock engine objects) and of the rebuilt type description,
-tools\ are the scripts used to find and verify every address in both
-executables (ap_sites.py writes src\targets.inc).
+tools\ are the scripts used to find and verify every address in the four
+executables (ap_sites.py writes src\targets.inc; it reads the exes of 7 June
+2019 from SAM2017_BIN and the ones of 19 November 2026 from SAM2017_BIN_2026,
+and checks that every site in the new build is the same code as in the old
+one). test\run_tests.sh runs the logic test and, with both variables set,
+rebuilds the type description for all four exes and checks it.

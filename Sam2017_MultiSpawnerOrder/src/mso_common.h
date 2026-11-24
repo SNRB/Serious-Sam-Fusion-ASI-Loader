@@ -11,7 +11,8 @@ typedef signed long long   i64;
 typedef __WCHAR_TYPE__     wchar_t;   /* 16-bit on Windows targets (matches L"...") */
 
 /* ------------------------------------------------------------------------- */
-/* the two supported executables                                             */
+/* the supported executables: editor and game, builds of 7 June 2019 and     */
+/* 19 November 2026                                                          */
 /* ------------------------------------------------------------------------- */
 typedef struct Target {
     const wchar_t *exeName;
@@ -38,7 +39,7 @@ typedef struct Target {
         proGetTemplate[16];
 } Target;
 
-/* layout of the original stream (identical in both executables) */
+/* layout of the original stream (identical in all four executables) */
 #define STREAM_QWORDS   253     /* including the terminating -1               */
 #define IDX_FORMAT      84      /* CMultiSpawnerProperties format (5)         */
 #define IDX_NMEMBERS    92      /* number of members (4)                      */

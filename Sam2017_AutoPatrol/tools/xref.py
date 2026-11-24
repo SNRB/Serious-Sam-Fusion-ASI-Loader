@@ -3,8 +3,10 @@ import numpy as np, os, sys, struct
 sys.path.insert(0, os.path.dirname(__file__))
 from pe import PE, disasm
 import os
-BIN = os.environ.get('SAM2017_BIN', '.')
-EXE = {'ed': os.path.join(BIN, 'Sam2017_SeriousEditor.exe'), 'gm': os.path.join(BIN, 'Sam2017_Unrestricted.exe')}
+BIN = os.environ.get('SAM2017_BIN', '.')                  # the two executables of 7 June 2019
+BIN26 = os.environ.get('SAM2017_BIN_2026', '.')            # the two executables of 19 November 2026
+EXE = {'ed': os.path.join(BIN, 'Sam2017_SeriousEditor.exe'), 'gm': os.path.join(BIN, 'Sam2017_Unrestricted.exe'),
+       'ed26': os.path.join(BIN26, 'Sam2017_SeriousEditor.exe'), 'gm26': os.path.join(BIN26, 'Sam2017_Unrestricted.exe')}
 
 _cache = {}
 

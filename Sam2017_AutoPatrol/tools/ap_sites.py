@@ -1,8 +1,10 @@
-"""Auto patrol plugin: address table + verification of every site in both executables.
+"""Auto patrol plugin: address table + verification of every site in the executables of both supported builds.
 Writes ../src/targets.inc.
-Usage:  SAM2017_BIN=<folder with both exes>  python3 ap_sites.py
-(first run:  python3 allmeta.py ed 0x140b2e3e0  and  python3 allmeta.py gm 0x140dc4d30
- in this folder, they write meta_ed.pkl / meta_gm.pkl with all type descriptions)"""
+Usage:  SAM2017_BIN=<folder with both exes of 7 June 2019>
+        SAM2017_BIN_2026=<folder with both exes of 19 November 2026>  python3 ap_sites.py
+(first run, in this folder:  python3 allmeta.py ed 0x140b2e3e0,  python3 allmeta.py gm 0x140dc4d30,
+ python3 allmeta.py ed26 0x140b2e0f0  and  python3 allmeta.py gm26 0x140d2b640 - they write meta_<exe>.pkl
+ with all type descriptions)"""
 import sys, os, struct, re, pickle
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -27,8 +29,9 @@ def branch_targets_into(x, start, end, lo, hi):
     return bad
 
 EXES = {
+    # ---- build of 7 June 2019
     'ed': dict(
-        name='Sam2017_SeriousEditor.exe',
+        name='Sam2017_SeriousEditor.exe', build='7 June 2019',
         RegisterMetaData=0x140b2e3e0, HandleToPtr=0x140b2be80, PtrToHandle=0x140b2c220,
         IsDerivedFrom=0x140b30060,
         stream=0x1420e3150, static_init=0x140f366e8,
@@ -40,7 +43,7 @@ EXES = {
         tactic_func=0x140ff3dc0, tactic_call=0x140ff4184,
     ),
     'gm': dict(
-        name='Sam2017_Unrestricted.exe',
+        name='Sam2017_Unrestricted.exe', build='7 June 2019',
         RegisterMetaData=0x140dc4d30, HandleToPtr=0x140dfb9b0, PtrToHandle=0x140dfbd50,
         IsDerivedFrom=0x140dc6780,
         stream=0x1412f92a0, static_init=0x140127688,
@@ -50,6 +53,33 @@ EXES = {
         props_ctor=0x1400f5610, props_ctor_tail=0x1400f57bf,
         init_func=0x140119ea0, init_call=0x140119ebd, base_init=0x1409fef10,
         tactic_func=0x140145bf0, tactic_call=0x140145fb4,
+    ),
+    # ---- build of 19 November 2026: the same code (byte for byte apart from addresses), moved. The meta data stream
+    # that holds CPuppetProperties is longer (CPuppetEntity, earlier in it, has two new members), so the
+    # CPuppetProperties record sits at another index; the record itself is unchanged.
+    'ed26': dict(
+        name='Sam2017_SeriousEditor.exe', build='19 November 2026',
+        RegisterMetaData=0x140b2e0f0, HandleToPtr=0x140b2bb90, PtrToHandle=0x140b2bf30,
+        IsDerivedFrom=0x140b2fd40,
+        stream=0x142145bd0, static_init=0x140f6ed78,
+        dt_puppet_props=0x1432d8310, dt_puppet=0x1432d83f0, dt_marker=0x1432d7158,
+        dt_boss1=0x1432d8ff8, dt_boss2=0x1432d9018, dt_boss3=0x1432d9658,
+        dt_enemy=0x1432d97a0, dt_cover=0x1432e4b98,
+        props_ctor=0x140f39840, props_ctor_tail=0x140f399ef,
+        init_func=0x140f61620, init_call=0x140f6163d, base_init=0x1404b63d0,
+        tactic_func=0x14102cb90, tactic_call=0x14102cf54,
+    ),
+    'gm26': dict(
+        name='Sam2017_Unrestricted.exe', build='19 November 2026',
+        RegisterMetaData=0x140d2b640, HandleToPtr=0x140d60d90, PtrToHandle=0x140d61130,
+        IsDerivedFrom=0x140d2d030,
+        stream=0x14128e8e0, static_init=0x1401270f8,
+        dt_puppet_props=0x141d24420, dt_puppet=0x141d24500, dt_marker=0x141d33cc8,
+        dt_boss1=0x141d37ea8, dt_boss2=0x141d37f78, dt_boss3=0x141d381c0,
+        dt_enemy=0x141d37b30, dt_cover=0x141d321c8,
+        props_ctor=0x1400f4d80, props_ctor_tail=0x1400f4f2f,
+        init_func=0x1401199e0, init_call=0x1401199fd, base_init=0x1409662f0,
+        tactic_func=0x140145990, tactic_call=0x140145d54,
     ),
 }
 
@@ -61,8 +91,23 @@ TAC_MID = bytes.fromhex('8b4874')                # mov ecx,[rax+0x74]
 TAC_AFTER = bytes.fromhex('4885c0488b07' '74')   # test rax,rax; mov rax,[rdi]; je rel8
 # after the je: mov ecx,[rax+0x3b4] ... and the "puppet marker" branch reads [rax+0x3bc]
 
-STREAM_QWORDS = 0x463e
-IDX = dict(format=0x2da, nmembers=0x2e2, insert=0x523, boolrec=0x31f)
+# layout of the stream in the build of 7 June 2019 (the same in both executables); other builds: computed below
+STREAM_QWORDS_2019 = 0x463e
+IDX_2019 = dict(format=0x2da, nmembers=0x2e2, insert=0x523, boolrec=0x31f)
+STREAM_QWORDS_MAX = 0x4700      # must match STREAM_QWORDS_MAX in ap_common.h
+
+
+def stream_layout(pe, stream, ents):
+    """qword indices of the CPuppetProperties class record fields the plugin uses"""
+    q = lambda va: (va - stream) // 8
+    cls = [e for e in ents if e['tag'] == 1 and e['kind'] == 5 and e['name'] == 'CPuppetProperties'][0]
+    ci = q(cls['va'])
+    mems = cls['members']
+    boolrec = [m for m in mems if m['name'] == 'ep_bIsMultiSpawnerTemplate'][0]
+    last = mems[-1]
+    # a member record is 12 qwords plus 2 per attribute; the functions count follows the last one
+    insert = q(last['va']) + 12 + 2 * len(last['attrs'])
+    return dict(format=ci + 4, nmembers=ci + 12, insert=insert, boolrec=q(boolrec['va']))
 
 
 def check(which):
@@ -80,7 +125,10 @@ def check(which):
     ents = meta.parse_stream(pe, E['stream'])
     end = ents[-1]['end']
     nq = (end - E['stream']) // 8 + 1
-    need(nq == STREAM_QWORDS, 'stream length %x' % nq)
+    IDX = stream_layout(pe, E['stream'], ents)
+    if E['build'] == '7 June 2019':
+        need(nq == STREAM_QWORDS_2019 and IDX == IDX_2019, 'stream layout %x %s' % (nq, IDX))
+    need(nq <= STREAM_QWORDS_MAX, 'stream longer than STREAM_QWORDS_MAX: %x' % nq)
     raw = pe.read(E['stream'], nq * 8)
     q = lambda i: struct.unpack_from('<Q', raw, 8 * i)[0]
     need(q(nq - 1) == 0xffffffffffffffff, 'terminator')
@@ -120,6 +168,18 @@ def check(which):
     # class names of the boss globals
     names = {}
     mm = pickle.load(open(os.path.join(HERE, 'meta_%s.pkl' % which), 'rb'))
+    # the CPuppetProperties record of a later build must be the one of 7 June 2019 (members, offsets, ids, flags):
+    # the plugin's new member record and offset 0x184 rely on it
+    ref = {'ed26': 'ed', 'gm26': 'gm'}.get(which)
+    if ref:
+        rx = xref.get(ref)
+        rents = meta.parse_stream(rx.pe, EXES[ref]['stream'])
+        rcls = [e for e in rents if e['tag'] == 1 and e['kind'] == 5 and e['name'] == 'CPuppetProperties'][0]
+        strip = lambda e: {k: ([{kk: vv for kk, vv in m.items() if kk != 'va'} for m in v] if k == 'members' else v)
+                           for k, v in e.items() if k not in ('va', 'end', 'global', 'ftable')}
+        need(strip(rcls) == strip(cls), 'CPuppetProperties record differs from the build of 7 June 2019')
+        need([f for b, f in rcls['ftable']] == [f for b, f in rcls['ftable']] and len(rcls['ftable']) == len(cls['ftable']),
+             'CPuppetProperties function table')
     for s, es in mm.items():
         for e in es:
             if e.get('tag') == 1 and e.get('kind') == 5:
@@ -190,8 +250,9 @@ def check(which):
     # prologues
     pro = {k: pe.read(E[k], 16) for k in ('RegisterMetaData', 'HandleToPtr', 'PtrToHandle', 'IsDerivedFrom', 'base_init')}
     need(pro['IsDerivedFrom'][:16] == bytes.fromhex('40534883ec20488bda488bc14885d274'), 'IsDerivedFrom bytes')
-    print('%s: %s' % (which, 'OK' if ok else 'FAILED'))
-    return ok, dict(hash=h, si=si[:21], pro=pro)
+    print('%s: %s  (stream %d qwords, format@%#x nmembers@%#x bool@%#x insert@%#x)' % (
+        which, 'OK' if ok else 'FAILED', nq, IDX['format'], IDX['nmembers'], IDX['boolrec'], IDX['insert']))
+    return ok, dict(hash=h, si=si[:21], pro=pro, nq=nq, idx=IDX)
 
 
 def cbytes(b):
@@ -201,7 +262,7 @@ def cbytes(b):
 if __name__ == '__main__':
     out = []
     allok = True
-    for which in ('ed', 'gm'):
+    for which in ('ed', 'gm', 'ed26', 'gm26'):
         ok, info = check(which)
         allok &= ok
         E = EXES[which]
@@ -215,7 +276,7 @@ if __name__ == '__main__':
     lines = []
     for which, E, info in out:
         L = lines.append
-        L('    { /* %s */' % E['name'])
+        L('    { /* %s, build of %s */' % (E['name'], E['build']))
         L('        L"%s", 0x%08XU, 0x%08XU,' % (E['name'], info['ts'], info['soi']))
         for k, c in (('RegisterMetaData', 'RegisterMetaData'), ('HandleToPtr', 'HandleToPtr'), ('PtrToHandle', 'PtrToHandle'),
                      ('IsDerivedFrom', 'IsDerivedFrom'), ('stream', 'stream'), ('static_init', 'static init'),
@@ -230,6 +291,9 @@ if __name__ == '__main__':
         L('        %s, /* static init original bytes */' % cbytes(info['si']))
         for k in ('RegisterMetaData', 'HandleToPtr', 'PtrToHandle', 'IsDerivedFrom', 'base_init'):
             L('        %s, /* prologue %s */' % (cbytes(info['pro'][k]), k))
+        I = info['idx']
+        L('        0x%X, 0x%X, 0x%X, 0x%X, 0x%X, /* stream: qwords, format, members count, BOOL record, insert point */' % (
+            info['nq'], I['format'], I['nmembers'], I['boolrec'], I['insert']))
         L('    },')
     dst = os.path.join(HERE, '..', 'src', 'targets.inc')
     open(dst, 'w').write('\n'.join(lines) + '\n')

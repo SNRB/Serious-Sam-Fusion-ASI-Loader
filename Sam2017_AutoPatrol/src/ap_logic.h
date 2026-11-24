@@ -312,35 +312,36 @@ static const char s_memName[] = "ep_bAutoPatrol";
 static const char s_memId[]   = "152";
 
 #define MEMBER_QWORDS 12
-#define NEW_QWORDS    (STREAM_QWORDS + MEMBER_QWORDS)
 
-static u64 g_stream[NEW_QWORDS];
+static u64 g_stream[STREAM_QWORDS_MAX + MEMBER_QWORDS];
 
+/* the stream of g_T with the new member; the caller has checked g_T->streamQwords <= STREAM_QWORDS_MAX */
 static u32 BuildStream(const u64 *src)
 {
+    const Target *T = g_T;
     u32 n = 0;
     /* original entries up to the end of the member records (members stay in offset order) */
-    for (u32 i = 0; i < IDX_INSERT; i++) {
+    for (u32 i = 0; i < T->idxInsert; i++) {
         u64 q = src[i];
-        if (i == IDX_FORMAT)   q = NEW_FORMAT;
-        if (i == IDX_NMEMBERS) q = OLD_NMEMBERS + 1;
+        if (i == T->idxFormat)   q = NEW_FORMAT;
+        if (i == T->idxNMembers) q = OLD_NMEMBERS + 1;
         g_stream[n++] = q;
     }
     /* member: BOOL ep_bAutoPatrol  (after "Active range override", the last member) */
-    g_stream[n++] = src[IDX_BOOLREC + 0];    /* type by name ...  */
-    g_stream[n++] = src[IDX_BOOLREC + 1];    /* ... "BOOL"        */
+    g_stream[n++] = src[T->idxBoolRec + 0];  /* type by name ...  */
+    g_stream[n++] = src[T->idxBoolRec + 1];  /* ... "BOOL"        */
     g_stream[n++] = NEW_MEMBER_ID;           /* member ID         */
     g_stream[n++] = (u64)s_memDisp;          /* display name      */
     g_stream[n++] = (u64)s_memName;          /* member name       */
     g_stream[n++] = (u64)s_memId;            /* ID string         */
-    g_stream[n++] = src[IDX_BOOLREC + 6];    /* group: "" (the engine's own empty string) */
+    g_stream[n++] = src[T->idxBoolRec + 6];  /* group: "" (the engine's own empty string) */
     g_stream[n++] = MEMBER_OFFSET;           /* offset            */
     g_stream[n++] = 0;                       /* flags             */
     g_stream[n++] = 0;
     g_stream[n++] = 0;
     g_stream[n++] = 0;                       /* no attributes     */
     /* rest of the original stream, including the terminating -1 */
-    for (u32 i = IDX_INSERT; i < STREAM_QWORDS; i++) g_stream[n++] = src[i];
+    for (u32 i = T->idxInsert; i < T->streamQwords; i++) g_stream[n++] = src[i];
     return n;
 }
 

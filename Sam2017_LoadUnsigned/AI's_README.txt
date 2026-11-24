@@ -1,7 +1,16 @@
-Sam2017_LoadUnsigned.asi  -  version 1.0
+Sam2017_LoadUnsigned.asi  -  version 1.1
 Load valid assets that are missing the editor signature
-Serious Sam Fusion 2017, build of 7 June 2019:
+Serious Sam Fusion 2017, builds of 7 June 2019 and 19 November 2026:
     Sam2017_SeriousEditor.exe and Sam2017_Unrestricted.exe
+
+CHANGES
+-------
+1.1  Works with the updated executables of 19 November 2026 (and still with
+     the ones of 7 June 2019). The two checks are the same code in the new
+     build, only at other addresses:
+       editor  0x140BBC94E (stream credentials), 0x140D944E5 (second gate)
+       game    0x140D98A5E (stream credentials), 0x1401F7A85 (second gate)
+     The behaviour is unchanged.
 ==========================================================================
 
 WHAT IT DOES
@@ -79,4 +88,6 @@ The source is in the "source" folder: src\ is the plugin (C, no runtime
 library, built with clang + lld-link, see build.sh), tools\ finds and verifies
 the patch sites in both executables (sig_sites.py writes src\targets.inc;
 verify_patch.py applies the patches to a copy and disassembles the result),
-test\ runs both checks (set SAM2017_BIN to the folder with the two exes).
+test\ runs both checks (set SAM2017_BIN to the folder with the two exes of
+7 June 2019 and SAM2017_BIN_2026 to the folder with the two exes of
+19 November 2026).

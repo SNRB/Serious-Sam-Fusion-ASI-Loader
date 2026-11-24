@@ -1,0 +1,91 @@
+# Addresses in harness.c: Sam2017_SeriousEditor.exe of 7 June 2019 -> 19 November 2026 (apply_map.py).
+# Found by matching the code of the two builds (function by function, and through the code and data that
+# refer to them; the cvars agree with src/exe_expect.h); harness26.c is harness.c with these numbers replaced.
+0x140160B48 0x140160FE8  # same function
+0x140160B49 0x140160FE9  # same function
+0x140546DB0 0x140546BB0  # same function (by its callers) {'0x140546bb0': 41}
+0x140548270 0x140548070  # same function
+0x14075ACF0 0x14075A9D0  # same function
+0x14075AF20 0x14075AC00  # same function
+0x14075B0D0 0x14075ADB0  # same function
+0x14075B0D6 0x14075ADB6  # same function
+0x14075B260 0x14075AF40  # same function
+0x14075B281 0x14075AF61  # same function
+0x14075B430 0x14075B110  # same function
+0x14075BBA0 0x14075B880  # same function
+0x14075BFCD 0x14075BCAD  # same function
+0x14075BFD2 0x14075BCB2  # same function
+0x14075BFF0 0x14075BCD0  # same function
+0x14075C060 0x14075BD40  # same function
+0x1407A7650 0x1407A74A0  # same function
+0x140B20580 0x140B20290  # same function
+0x140B20A00 0x140B20710  # same function
+0x140B20E30 0x140B20B40  # same function
+0x140B20EF0 0x140B20C00  # same function
+0x140B210F0 0x140B20E00  # same function
+0x140B21260 0x140B20F70  # same function
+0x140B21360 0x140B21070  # same function
+0x140B21690 0x140B213A0  # same function (by its callers) {'0x140b213a0': 4149}
+0x140B216A0 0x140B213B0  # same function
+0x140B217A0 0x140B214B0  # same function
+0x140B219D0 0x140B216E0  # same function
+0x140B21BC0 0x140B218D0  # same function
+0x140B25C50 0x140B25940  # same function
+0x140B25F30 0x140B25C30  # same function
+0x140B27910 0x140B27620  # same function
+0x140B2A9F0 0x140B2A700  # same function (by its callers) {'0x140b2a700': 1912}
+0x140B2AA10 0x140B2A720  # same function
+0x140B2E3E0 0x140B2E0F0  # same function
+0x140B33160 0x140B32E40  # same function
+0x140B417E0 0x140B416C0  # same function
+0x140B56420 0x140B56440  # same function
+0x140B572E0 0x140B57300  # same function
+0x140B577F0 0x140B57810  # same function
+0x140B589C0 0x140B589D0  # same function
+0x140B5A240 0x140B5A250  # same function
+0x140B5A2A0 0x140B5A2B0  # same function
+0x140B5ADB0 0x140B5ADC0  # same function
+0x140B5B070 0x140B5B080  # same function
+0x140B5B390 0x140B5B3B0  # same function (by its callers) {'0x140b5b3b0': 173}
+0x140B5B6A0 0x140B5B6C0  # same function
+0x140B5BA80 0x140B5BAA0  # same function
+0x140B5FDE0 0x140B5FE10  # same function
+0x140B63C50 0x140B63C80  # same function
+0x140B6A720 0x140B6A8D0  # same function
+0x140B6A72B 0x140B6A8DB  # same function
+0x140B730F0 0x140B732E0  # same function (by its callers) {'0x140b732e0': 13}
+0x140B730F3 0x140B732E3  # the displacement byte in the metadata name getter (0x140B730F0 + 3)
+0x14160FE50 0x14164FA10  # same function
+0x14160FF20 0x14164FAE0  # same function
+0x141610430 0x14164FFF0  # same function
+0x141610600 0x1416501C0  # same function
+0x141611F00 0x141651AC0  # same function (by its callers) {'0x141651ac0': 20}
+0x141674110 0x1416B4170  # same function
+0x141C56C98 0x141C96DB8  # data data votes 1
+0x141EE3410 0x141F240A0  # data data votes 1
+0x141EFB2D8 0x141F3C158  # data data votes 2
+0x142903E28 0x14296CDB8  # data data votes 13
+0x1429709A8 0x1429D9938  # data data votes 52
+0x1429B05E8 0x142A112D8  # data data votes 9
+0x142A32688 0x142A93348  # data data votes 219
+0x142A72FD8 0x142AD4488  # data data votes 9
+0x142AB9874 0x142B1ACA8  # data data votes 1
+0x142AC5C50 0x142B27120  # data data votes 1
+0x142AE59D0 0x142B46E90  # data data votes 2
+0x1431DD2C0 0x14323E780  # data data votes 154
+0x1431DD4E0 0x14323E9A0  # data data votes 29
+0x1431DD4F8 0x14323E9B8  # data data votes 29
+0x1431DD850 0x14323ED10  # data data votes 3
+0x1431DE4C8 0x14323F988  # data data votes 1
+0x1431DE960 0x14323FE20  # data data votes 1
+0x1431E4800 0x143245CC0  # data data votes 13
+0x143278EAC 0x1432D9FBC  # data data votes 1
+0x143279248 0x1432DA35C  # data offset +0x8 from 0x143279240 (data votes 1)
+0x143289A70 0x1432EABA0  # data refs 1
+0x1432AAFA8 0x14330C278  # data data votes 1
+0x143524000 0x143588000  # .tls (the TLS template, same content)
+0x1B54000 0x1B94000  # RVA of .rdata
+0x286A000 0x28D3000  # RVA of .data
+0x3324000 0x3385000  # RVA of .pdata
+0x5CF9A1F6 0x6AFEF6E9  # TimeDateStamp of Sam2017_Unrestricted.exe (mode game)
+0x27FB000 0x2788000  # SizeOfImage of Sam2017_Unrestricted.exe (mode game)

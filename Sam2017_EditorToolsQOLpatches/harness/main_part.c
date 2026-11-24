@@ -69,7 +69,7 @@ int main(int argc, char **argv)
         printf("[*] a different build of Sam2017_SeriousEditor.exe\n");
         *(u32 *)(g_exe + pe_nt(g_exe) + 8) = 0x5D000000;
         g_dllMain(g_plugin, 1, (void *)1);
-        CHECK(log_has("is not the original executable of 7 June 2019"), "logged");
+        CHECK(log_has("is not one of the original executables (builds of 7 June 2019 and 19 November 2026)"), "logged");
         CHECK(g_boxes == 1, "warning box shown");
         CHECK(g_nprot == 0, "nothing changed");
     } else {

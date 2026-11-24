@@ -22,8 +22,13 @@ Self-check: every blob is linked at two addresses; applying the fixups to the fi
 
 usage: build_pkg.py <out dir> [feature]
 
-The original executables are read from exe/ next to this script, or from the paths in the environment variables
-SAM2017_EDITOR_EXE and SAM2017_GAME_EXE. Needs clang, objdump (binutils) and Python 3.
+A feature gets one package per supported executable: the editor and the game of the build of 7 June 2019 (configs
+cfg/editor5.json, cfg/unrestricted5.json) and of the build of 19 November 2026 (cfg/editor26.json,
+cfg/unrestricted26.json). The plugin applies the package whose identity matches the running program.
+
+The original executables are read from exe/ (7 June 2019) and exe/2026/ (19 November 2026) next to this script, or
+from the paths in the environment variables SAM2017_EDITOR_EXE, SAM2017_GAME_EXE, SAM2017_EDITOR_EXE_2026 and
+SAM2017_GAME_EXE_2026. Needs clang, objdump (binutils) and Python 3.
 """
 import sys, os, struct, json, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +51,14 @@ EXES = {
                    cfg=os.path.join(HERE, 'cfg', 'editor5.json'), name='Sam2017_SeriousEditor.exe'),
     'game': dict(path=os.environ.get('SAM2017_GAME_EXE', os.path.join(HERE, 'exe', 'Sam2017_Unrestricted.exe')),
                  cfg=os.path.join(HERE, 'cfg', 'unrestricted5.json'), name='Sam2017_Unrestricted.exe'),
+    # the updated executables of 19 November 2026 (identity: CheckSum 0x2dbd676 / 0x1f1a9b7): the same engine code,
+    # moved; cfg/*26.json hold its addresses
+    'editor26': dict(path=os.environ.get('SAM2017_EDITOR_EXE_2026',
+                                         os.path.join(HERE, 'exe', '2026', 'Sam2017_SeriousEditor.exe')),
+                     cfg=os.path.join(HERE, 'cfg', 'editor26.json'), name='Sam2017_SeriousEditor.exe'),
+    'game26': dict(path=os.environ.get('SAM2017_GAME_EXE_2026',
+                                       os.path.join(HERE, 'exe', '2026', 'Sam2017_Unrestricted.exe')),
+                   cfg=os.path.join(HERE, 'cfg', 'unrestricted26.json'), name='Sam2017_Unrestricted.exe'),
 }
 
 # Pure byte-patch features: a fixed list of (VA, original bytes, new bytes) per exe, with no code of their own.
@@ -74,10 +87,10 @@ BYTE_FEATURES = {
 SRC = os.path.join(HERE, 'src')
 FEATURES = {
     'MultiPathMarker': dict(src=os.path.join(SRC, 'mpm.c'), prefixes=('MPM_', 'g_PropsVtbl', 'g_EntityVtbl'),
-                            exes=('editor', 'game'), slot=0),
+                            exes=('editor', 'game', 'editor26', 'game26'), slot=0),
     'EditorScriptFunctions': dict(src=os.path.join(SRC, 'sra.c'), prefixes=('SRA_',), exes=('editor',), slot=1),
-    'CellShaded': dict(src=os.path.join(SRC, 'cs.c'), prefixes=('CS_', 'g_CS', 'g_cs'), exes=('editor', 'game'), slot=2,
-                       embed=('CellShadedShader.psh',)),
+    'CellShaded': dict(src=os.path.join(SRC, 'cs.c'), prefixes=('CS_', 'g_CS', 'g_cs'),
+                       exes=('editor', 'game', 'editor26', 'game26'), slot=2, embed=('CellShadedShader.psh',)),
     'MultiSpawnerOrder': dict(src=os.path.join(SRC, 'ms.c'), prefixes=('MS_', 'g_ms', 's_ms'), exes=('editor', 'game'), slot=3),
 }
 SLOT_SIZE = 0x100000

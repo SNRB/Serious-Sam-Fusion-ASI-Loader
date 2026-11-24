@@ -1,11 +1,18 @@
-Sam2017_MultiSpawnerOrder.asi  -  version 1.1
+Sam2017_MultiSpawnerOrder.asi  -  version 1.2
 Template order methods for the Multi spawner
-Serious Sam Fusion 2017, build of 7 June 2019:
+Serious Sam Fusion 2017, builds of 7 June 2019 and 19 November 2026:
     Sam2017_SeriousEditor.exe and Sam2017_Unrestricted.exe
 ==========================================================================
 
 CHANGES
 -------
+1.2  Works with the updated executables of 19 November 2026 (and still with
+     the ones of 7 June 2019); the plugin picks the right addresses for the
+     exe it is loaded into. Everything it changes is the same code and data
+     in the new build (CMultiSpawnerProperties, CSpawnerEntity and their
+     constructors and vtables are unchanged), only moved, so the methods and
+     the spawn order are exactly the same, and levels saved with 1.0 or 1.1
+     load with 1.2 in both builds.
 1.1  Fixed: with more than 512 usable templates in the table, the three new
      methods only ever used the first 512 rows; the rows below them never
      spawned, not even when the spawner started over. Now every row takes
@@ -108,4 +115,9 @@ HOW IT WORKS (all in memory, the exe files are not modified)
 The source is in the "source" folder: src\ is the plugin (C, no runtime
 library, built with clang + lld-link, see build.sh), test\ is a native test of
 the selection logic and of the rebuilt meta data stream, tools\ are the
-scripts used to find and verify every address in both executables.
+scripts used to find and verify every address in the four executables:
+sites.py (SAM2017_BIN = folder with the two exes of 7 June 2019,
+SAM2017_BIN_2026 = folder with the two of 19 November 2026) checks every site
+and writes tools\sites.pkl, then gen_targets.py writes src\targets.inc from
+it. test\run_tests.sh runs the logic tests and, with both variables set,
+rebuilds the type description for all four exes and checks it.

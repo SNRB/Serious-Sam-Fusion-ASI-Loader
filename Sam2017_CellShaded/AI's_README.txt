@@ -4,6 +4,22 @@
 > package-build helpers) have been recovered from the shipped `.asi`. This folder rebuilds that `.asi` **byte for
 > byte** (SHA-256 below).
 
+> **Updated for the executables of 19 November 2026.** The plugin now carries one package per executable of both builds
+> (7 June 2019 and 19 November 2026, editor and game: four packages) and applies the one whose identity matches the
+> running exe. The two 2019 packages inside are byte for byte the ones of the shipped `.asi`, so on the 2019
+> executables nothing changes.
+
+## Changes for the build of 19 November 2026
+- `cfg/editor26.json`, `cfg/unrestricted26.json` — the addresses of every engine symbol, patch site, expected value
+  and vtable entry the feature uses, in the new executables. They were found by matching the old and the new code
+  (function by function, by their masked instruction bytes, and through the code and data that refer to them), and
+  every entry was checked to be the same code or data as in 2019, only moved. The copied render function of the
+  Standard shader is the same code in the new build (0x28C1 bytes in both executables of both builds), so the clone
+  is made the same way.
+- `build_pkg.py` builds the packages of the four executables (feature list: `editor`, `game`, `editor26`, `game26`).
+- `src/asi_plugin.c` (shared runtime): the message for an unknown exe now names both supported builds.
+- The feature source (`src/*.c`) is unchanged.
+
 ## What it does
 Adds a new shader, **"CellShaded"**, next to "Standard" in the material Shader list — a copy of Standard with a
 cartoon/cel look: flat lighting with a sharp terminator line, sharpened shadow edges, and a tintable/brightenable
@@ -12,11 +28,14 @@ sharpness, shadow threshold, ambient flatness). It draws with its own clone of S
 pixel programs, leaving Standard untouched. Full description: `../README.txt`.
 
 ## To build
-You need clang, lld-link and llvm-dlltool from LLVM 18, objdump (binutils) and Python 3. You also need the two
-**original** executables (7 June 2019). Put them in `exe/` here, or point the environment variables at them:
+You need clang, lld-link and llvm-dlltool from LLVM 18, objdump (binutils) and Python 3. You also need the four
+**original** executables: the two of 7 June 2019 in `exe/` here and the two of 19 November 2026 in `exe/2026/`, or
+point the environment variables at them:
 ```
-export SAM2017_EDITOR_EXE=/path/to/Sam2017_SeriousEditor.exe
-export SAM2017_GAME_EXE=/path/to/Sam2017_Unrestricted.exe
+export SAM2017_EDITOR_EXE=/path/to/2019/Sam2017_SeriousEditor.exe
+export SAM2017_GAME_EXE=/path/to/2019/Sam2017_Unrestricted.exe
+export SAM2017_EDITOR_EXE_2026=/path/to/2026/Sam2017_SeriousEditor.exe
+export SAM2017_GAME_EXE_2026=/path/to/2026/Sam2017_Unrestricted.exe
 ./build.sh                 # -> out/Sam2017_CellShaded.asi
 ```
 `build.sh` runs `build_pkg.py out CellShaded`. That turns `src/CellShadedShader.psh` into a C string include
@@ -24,7 +43,9 @@ export SAM2017_GAME_EXE=/path/to/Sam2017_Unrestricted.exe
 executable. It writes one package per executable plus `out/pkg_CellShaded.h`. It then compiles `src/asi_plugin.c`
 with that header.
 
-Expected result, identical to the shipped file:
+Expected result (both builds):
+`0f69c1743a9cd694177afa0b261ef54913a6a23ceefc253ca046141d82f14d3f  Sam2017_CellShaded.asi`
+The 2019 version of this folder, built with the two 2019 executables, gave the shipped file:
 `2c8fbc505c0cb48f06a82f0621e520bd4dcd9ee4b657cdfc65208df54fccfdf8  Sam2017_CellShaded.asi`
 Byte-identical output needs the same compiler generation (LLVM 18; checked with clang 18.1.3).
 
@@ -38,6 +59,7 @@ Byte-identical output needs the same compiler generation (LLVM 18; checked with 
 - `build_pkg.py` — the package builder (as recovered; paths made relative and the shader embedding added, see below)
 - `tools/coff_link.py`, `tools/patch_exe3.py`, `tools/patch_exe5.py` — **rewritten** package-build helpers.
   `patch_exe5.py` holds the function-clone logic that copies and relocates Standard's render function.
+- `cfg/editor26.json`, `cfg/unrestricted26.json` — the same for the executables of 19 November 2026
 - `cfg/editor5.json`, `cfg/unrestricted5.json` — **rebuilt** addresses of the engine symbols, patch sites, expected
   values and the clone description in each executable
 

@@ -950,8 +950,9 @@ static void test_toggle(u64 exec)
                                        : "[4]Metadata codenames OFF: metadata members are shown by their display names.\n"),
           "console message (Info) says %s", *NAME_BYTE == 0x20 ? "ON" : "OFF");
     u8 code[9]; memcpy(code, (void *)0x140B730F0ULL, 9);
-    CHECK(code[0] == 0x48 && code[1] == 0x8B && code[2] == 0x49 && code[4] == 0xE9 && *(u32 *)(code + 5) == 0xFFFB78F7,
-          "the rest of the getter is unchanged (48 8B 49 %02X E9 F7 78 FB FF)", code[3]);
+    CHECK(code[0] == 0x48 && code[1] == 0x8B && code[2] == 0x49 && code[4] == 0xE9 &&
+          *(u32 *)(code + 5) == (u32)(0x140B2A9F0ULL - (0x140B730F0ULL + 9)),       /* jmp to the id-to-text function */
+          "the rest of the getter is unchanged (48 8B 49 %02X E9 %02X %02X %02X %02X)", code[3], code[5], code[6], code[7], code[8]);
 }
 
 static void test_command_fake(void)
@@ -1397,8 +1398,8 @@ int main(int argc, char **argv)
         *(u32 *)(g_exe + pe_nt(g_exe) + 8) = 0x5D000000;
         env_set("SAM2017_ASI_WINDOW", "1");
         g_dllMain(g_plugin, 1, (void *)1);
-        CHECK(log_has("is not the original executable of 7 June 2019"), "logged");
-        CHECK(g_boxes == 1 && strstr(g_lastBox, "This Sam2017_SeriousEditor.exe is not the original executable of 7 June 2019"),
+        CHECK(log_has("is not one of the original executables (builds of 7 June 2019 and 19 November 2026)"), "logged");
+        CHECK(g_boxes == 1 && strstr(g_lastBox, "This Sam2017_SeriousEditor.exe is not one of the original executables (builds of 7 June 2019 and 19 November 2026)"),
               "warning box shown");
         u32 sz2; u8 *second = load_plugin(pluginPath, &sz2);
         g_dllMain(second, 1, (void *)1);

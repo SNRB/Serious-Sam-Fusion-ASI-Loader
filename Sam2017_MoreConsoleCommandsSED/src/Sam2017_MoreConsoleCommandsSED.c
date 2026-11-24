@@ -2,7 +2,8 @@
  * Sam2017_MoreConsoleCommandsSED.asi
  * -----------------------------------
  * ASI plugin for Serious Editor of Serious Sam Fusion 2017
- * (Sam2017_SeriousEditor.exe, build of 7 June 2019).
+ * (Sam2017_SeriousEditor.exe, builds of 7 June 2019 and 19 November 2026; the addresses in this
+ * comment are those of the 2019 build - exe_expect.h holds both, see g_cvars for the variables).
  *
  * Declares console variables whose code exists in the editor but which are not
  * declared to its console (custom commands, credits to Nigmas):
@@ -125,22 +126,27 @@ DLLIMPORT void   *WINAPI GetProcAddress(HMODULE, const char *);
 #include "exe_expect.h"   /* identity, hashes of relied-on code, original call bytes */
 
 #define EXE_NAME                    L"Sam2017_SeriousEditor.exe"
-#define RVA_SECURITY_COOKIE         0x2A32688u            /* __security_cookie */
-#define SECURITY_COOKIE_DEFAULT     0x00002B992DDFA232ULL /* value before the CRT starts */
 
-#define RVA_RegisterDeclarations    0x0B2E3E0u  /* void (const u64 *table)                              */
-#define RVA_LoadCvarsHelp           0x075B430u  /* void (void): loads Help/Cvars/ *_cvars.xml, once      */
-#define RVA_CvarsHelpLoaded         0x2AE59D0u  /* int, set to 1 by LoadCvarsHelp                       */
-#define RVA_CvarDescArray           0x2903E28u  /* CStaticStackArray<CCvarDesc> (CvarsHelp records)      */
-#define RVA_CvarDescCtor            0x075ACF0u  /* CCvarDesc::CCvarDesc()                                */
-#define RVA_CvarDescArrayExpand     0x075AF20u  /* CStaticStackArray<CCvarDesc>::Expand(int)             */
-#define RVA_CStringAssign           0x0B25F30u  /* CString &CString::operator=(const char *)             */
-#define RVA_GetGlobalCmdHandler     0x1611F00u  /* CCommandHandler *(void): "CommandHandler.Global"      */
-#define RVA_RegisterCommand         0x1610600u  /* (handler, id, tooltip, execute, update, extra)        */
-#define RVA_RegisterShortcut        0x1610430u  /* (handler, command id, shortcut id, key, event, extra) */
-#define RVA_ConsoleInfo             0x0B1FFD0u  /* console message of type CMT_INFO (format "%1"...)    */
-#define RVA_MemberNameGetter        0x0B730F0u  /* mov rcx,[rcx+18h] ; jmp IdToString                   */
-#define RVA_MemberNameOffset        0x0B730F3u  /* that 18h (display name); 20h is the code name         */
+/* the build of the running editor (one of g_builds in exe_expect.h); the RVAs below are its own
+   (the comments give the addresses in the build of 7 June 2019) */
+static const struct ExeBuild *g_build;
+
+#define RVA_SECURITY_COOKIE         (g_build->rvaSECURITY_COOKIE)       /* __security_cookie (0x142A32688)      */
+#define SECURITY_COOKIE_DEFAULT     0x00002B992DDFA232ULL               /* value before the CRT starts          */
+
+#define RVA_RegisterDeclarations    (g_build->rvaRegisterDeclarations)  /* void (const u64 *table): 0x140B2E3E0 */
+#define RVA_LoadCvarsHelp           (g_build->rvaLoadCvarsHelp)         /* void (void): loads Help/Cvars/ *_cvars.xml, once (0x14075B430) */
+#define RVA_CvarsHelpLoaded         (g_build->rvaCvarsHelpLoaded)       /* int, set to 1 by LoadCvarsHelp (0x142AE59D0) */
+#define RVA_CvarDescArray           (g_build->rvaCvarDescArray)         /* CStaticStackArray<CCvarDesc> (CvarsHelp records, 0x142903E28) */
+#define RVA_CvarDescCtor            (g_build->rvaCvarDescCtor)          /* CCvarDesc::CCvarDesc() (0x14075ACF0) */
+#define RVA_CvarDescArrayExpand     (g_build->rvaCvarDescArrayExpand)   /* CStaticStackArray<CCvarDesc>::Expand(int) (0x14075AF20) */
+#define RVA_CStringAssign           (g_build->rvaCStringAssign)         /* CString &CString::operator=(const char *) (0x140B25F30) */
+#define RVA_GetGlobalCmdHandler     (g_build->rvaGetGlobalCmdHandler)   /* CCommandHandler *(void): "CommandHandler.Global" (0x141611F00) */
+#define RVA_RegisterCommand         (g_build->rvaRegisterCommand)       /* (handler, id, tooltip, execute, update, extra) (0x141610600) */
+#define RVA_RegisterShortcut        (g_build->rvaRegisterShortcut)      /* (handler, command id, shortcut id, key, event, extra) (0x141610430) */
+#define RVA_ConsoleInfo             (g_build->rvaConsoleInfo)           /* console message of type CMT_INFO (format "%1"...) (0x140B1FFD0) */
+#define RVA_MemberNameGetter        (g_build->rvaMemberNameGetter)      /* mov rcx,[rcx+18h] ; jmp IdToString (0x140B730F0) */
+#define RVA_MemberNameOffset        (g_build->rvaMemberNameGetter + 3)  /* that 18h (display name); 20h is the code name */
 
 /* Engine declaration record flags, as the editor's own cvars use them:
    0x10002 = "pure" cvar listed in the console (md_bLoadIncompatibleTypes),
@@ -150,32 +156,35 @@ DLLIMPORT void   *WINAPI GetProcAddress(HMODULE, const char *);
 #define CVAR_FLAG_SAVED             0x4ULL
 
 /* The console variables this plugin adds. To add another one, add a line here:
-   name, address in the exe minus 0x140000000, engine type name ("BOOL", "INDEX",
-   "FLOAT"), 1 to save it to SeriousEditor.ini, and optional "min"/"max" limits
-   (the console clamps values typed for it, like for the built-in efx_iBloom).
+   name, engine type name ("BOOL", "INDEX", "FLOAT"), 1 to save it to
+   SeriousEditor.ini, and optional "min"/"max" limits (the console clamps values
+   typed for it, like for the built-in efx_iBloom); and its address in each
+   build (minus 0x140000000) to the 'cvars' lists of gen_expect.py, which writes
+   them to exe_expect.h (g_builds[].rvaCvar, in the order of this table).
    The description shown is the editor's own (Help/Cvars/ *_cvars.xml), or
    "(undocumented)". A variable in a read-only section is made writable. */
 typedef struct CVarDef {
     const char    *name;
-    unsigned int   rva;
     const char    *type;
     int            saved;
     const char    *minValue;    /* or 0 */
     const char    *maxValue;    /* or 0 */
 } CVarDef;
 
-static const CVarDef g_cvars[] = {
-    { "hud_bShowGeometryInfo",         0x2AB9874u, "BOOL",  0, 0,   0   },  /* 0x142AB9874, .data  */
-    { "res_bSaveInTextFormat",         0x1EFB2D8u, "INDEX", 1, "0", "2" },  /* 0x141EFB2D8, .rdata */
-    { "scr_bUnsecureScripting",        0x2A72FD8u, "BOOL",  0, 0,   0   },  /* 0x142A72FD8, .data  */
-    { "prj_bUnlockAutoShotgunScope",   0x3279248u, "BOOL",  0, 0,   0   },  /* 0x143279248, .data  */
-    { "men_bMenuFrame",                0x3289A70u, "BOOL",  0, 0,   0   },  /* 0x143289A70, .data  */
-    { "prj_bAllowLevelChangeInEditor", 0x3278EACu, "BOOL",  1, 0,   0   },  /* 0x143278EAC, .data  */
-    { "fxd_bShowDebug",                0x2AC5C50u, "BOOL",  0, 0,   0   },  /* 0x142AC5C50, .data  */
-    { "fil_bReportFileOpen",           0x31DE4C8u, "BOOL",  0, 0,   0   },  /* 0x1431DE4C8, .data  */
-    { "md_bReportReadStats",           0x31DE960u, "BOOL",  1, 0,   0   },  /* 0x1431DE960, .data  */
+static const CVarDef g_cvars[] = {                                        /* 7 June 2019    19 November 2026 */
+    { "hud_bShowGeometryInfo",         "BOOL",  0, 0,   0   },  /* 0x142AB9874  0x142B1ACA8  .data  */
+    { "res_bSaveInTextFormat",         "INDEX", 1, "0", "2" },  /* 0x141EFB2D8  0x141F3C158  .rdata */
+    { "scr_bUnsecureScripting",        "BOOL",  0, 0,   0   },  /* 0x142A72FD8  0x142AD4488  .data  */
+    { "prj_bUnlockAutoShotgunScope",   "BOOL",  0, 0,   0   },  /* 0x143279248  0x1432DA35C  .data  */
+    { "men_bMenuFrame",                "BOOL",  0, 0,   0   },  /* 0x143289A70  0x1432EABA0  .data  */
+    { "prj_bAllowLevelChangeInEditor", "BOOL",  1, 0,   0   },  /* 0x143278EAC  0x1432D9FBC  .data  */
+    { "fxd_bShowDebug",                "BOOL",  0, 0,   0   },  /* 0x142AC5C50  0x142B27120  .data  */
+    { "fil_bReportFileOpen",           "BOOL",  0, 0,   0   },  /* 0x1431DE4C8  0x14323F988  .data  */
+    { "md_bReportReadStats",           "BOOL",  1, 0,   0   },  /* 0x1431DE960  0x14323FE20  .data  */
 };
 #define NUM_CVARS ((int)(sizeof(g_cvars) / sizeof(g_cvars[0])))
+#define CVAR_RVA(i) (g_build->rvaCvar[i])                     /* the variable of g_cvars[i] in the running build */
+_Static_assert(NUM_CVARS == NUM_CVARS_EXE, "g_cvars and the cvars lists of gen_expect.py");
 
 #define HELP_UNDOCUMENTED     "(undocumented)"      /* what the editor's help window shows then */
 #define HELP_UNDOCUMENTED_W   L"(undocumented)"
@@ -225,7 +234,6 @@ typedef void (*PFN_ConsoleInfo)(const char *text);
 
 _Static_assert(sizeof(CCvarDesc) == 0x58, "CCvarDesc must be 0x58 bytes");
 _Static_assert(sizeof(MEMORY_BASIC_INFORMATION) == 48, "MEMORY_BASIC_INFORMATION layout");
-_Static_assert(sizeof(g_sites) / sizeof(g_sites[0]) == NUM_SITES, "exe_expect.h site list");
 
 /* ------------------------------------------------------------------------- */
 /* Freestanding helpers                                                       */
@@ -475,7 +483,7 @@ static u8 *AllocNearProgram(void)
     MEMORY_BASIC_INFORMATION mbi;
 
     for (i = 0; i < NUM_SITES; i++) {
-        u64 next = (u64)(g_exe + g_sites[i].rva + 5);
+        u64 next = (u64)(g_exe + g_build->sites[i].rva + 5);
         u64 l = next > room ? next - room : 0, h = next + room;
         if (l > lo) lo = l;
         if (h < hi) hi = h;
@@ -501,7 +509,7 @@ static u8 *AllocNearProgram(void)
         }
     }
     /* 2) upwards, leaving 64 MB after the image for the other mods' blocks */
-    a = ((u64)g_exe + EXE_SIZEOFIMAGE + 0x4000000ULL + gran - 1) & ~(gran - 1);
+    a = ((u64)g_exe + g_build->sizeOfImage + 0x4000000ULL + gran - 1) & ~(gran - 1);
     while (a + gran <= hi) {
         if (!VirtualQuery((void *)a, &mbi, sizeof(mbi))) break;
         if (mbi.State == MEM_FREE) {
@@ -532,7 +540,7 @@ static void BuildDeclarationTable(void)
         g_table[k++] = 2;
         g_table[k++] = (u64)cv->name;
         g_table[k++] = (u64)"";
-        g_table[k++] = (u64)(g_exe + cv->rva);
+        g_table[k++] = (u64)(g_exe + CVAR_RVA(i));
         g_table[k++] = 1;
         g_table[k++] = (u64)cv->type;
         g_table[k++] = CVAR_FLAGS | (cv->saved ? CVAR_FLAG_SAVED : 0);
@@ -573,7 +581,7 @@ static void Hook_CoreDeclarations(const u64 *table)
                 TW(&g_line, L")");
             }
             TW(&g_line, L" at ");
-            THex(&g_line, (u64)(g_exe + g_cvars[i].rva));
+            THex(&g_line, (u64)(g_exe + CVAR_RVA(i)));
         }
         LogText(g_line.buf);
     }
@@ -685,8 +693,11 @@ static int Cmd_ToggleMetadataCodenames(void *unused)
     if (now == NAME_DISPLAY) next = NAME_CODE;
     else if (now == NAME_CODE) next = NAME_DISPLAY;
     else {
-        ConsoleInfo("Toggle metadata codenames: the editor code at 0x140B730F0 was changed by something else, "
-                    "nothing toggled.\n");
+        ConsoleInfo(g_build->rvaMemberNameGetter == 0x0B730F0u
+                    ? "Toggle metadata codenames: the editor code at 0x140B730F0 was changed by something else, "
+                      "nothing toggled.\n"
+                    : "Toggle metadata codenames: the editor code at 0x140B732E0 was changed by something else, "
+                      "nothing toggled.\n");
         return 1;
     }
     if (!VirtualProtect(p, 1, PAGE_EXECUTE_READWRITE, &old)) {
@@ -743,14 +754,14 @@ static int IsOurStub(const u8 *p)
 }
 
 /* The member display-name getter, with either name selected:
-   48 8B 49 18|20  mov rcx,[rcx+18h|20h]  ;  E9 F7 78 FB FF  jmp IdToString */
+   48 8B 49 18|20  mov rcx,[rcx+18h|20h]  ;  E9 xx xx xx xx  jmp IdToString
+   (2019: E9 F7 78 FB FF, 2026: E9 17 74 FB FF; the target is checked against the build's IdToString) */
 static int NameGetterIsKnown(void)
 {
-    static const u8 code[9] = { 0x48, 0x8B, 0x49, 0x00, 0xE9, 0xF7, 0x78, 0xFB, 0xFF };
     const u8 *p = g_exe + RVA_MemberNameGetter;
-    int i;
     if (!IsReadable(p, 9)) return 0;
-    for (i = 0; i < 9; i++) if (i != 3 && p[i] != code[i]) return 0;
+    if (p[0] != 0x48 || p[1] != 0x8B || p[2] != 0x49 || p[4] != 0xE9) return 0;
+    if ((u32)(RVA_MemberNameGetter + 9 + *(const int *)(p + 5)) != g_build->rvaIdToString) return 0;
     return p[3] == NAME_DISPLAY || p[3] == NAME_CODE;
 }
 
@@ -787,7 +798,7 @@ static void RestoreVarPages(const DWORD *oldProt, unsigned n)
     unsigned j;
     DWORD tmp;
     for (j = 0; j < n; j++)
-        if (oldProt[j]) VirtualProtect(g_exe + g_cvars[j].rva, 4, oldProt[j], &tmp);
+        if (oldProt[j]) VirtualProtect(g_exe + CVAR_RVA(j), 4, oldProt[j], &tmp);
 }
 
 static void Install(void)
@@ -821,9 +832,9 @@ static void Install(void)
     /* the calls it redirects must be untouched (checked first: a copy that already
        redirected them changed the bytes around them too) */
     for (i = 0; i < NUM_SITES; i++) {
-        u8 *site = g_exe + g_sites[i].rva;
+        u8 *site = g_exe + g_build->sites[i].rva;
         int same = 1;
-        for (j = 0; j < 5; j++) if (site[j] != g_sites[i].orig[j]) same = 0;
+        for (j = 0; j < 5; j++) if (site[j] != g_build->sites[i].orig[j]) same = 0;
         if (same) continue;
         if (site[0] == 0xE8 && IsOurStub(CallTarget(site))) {
             LogText(L"already applied by another copy of this plugin, skipped");
@@ -838,9 +849,10 @@ static void Install(void)
     }
 
     /* the code this plugin calls or depends on must be the original */
-    for (i = 0; i < sizeof(g_verify) / sizeof(g_verify[0]); i++) {
-        const u8 *p = g_exe + g_verify[i].rva;
-        if (!IsReadable(p, g_verify[i].len) || Fnv1a64(p, g_verify[i].len) != g_verify[i].hash) {
+    for (i = 0; i < g_build->numVerify; i++) {
+        const VerifyRegion *v = &g_build->verify[i];
+        const u8 *p = g_exe + v->rva;
+        if (!IsReadable(p, v->len) || Fnv1a64(p, v->len) != v->hash) {
             TReset(&reason);
             TW(&reason, L"The program code it relies on is different from what it expects (at ");
             THex(&reason, (u64)p);
@@ -861,7 +873,7 @@ static void Install(void)
     /* variables in a read-only section (res_bSaveInTextFormat is in .rdata) get a writable page */
     for (i = 0; i < (unsigned)NUM_CVARS; i++) {
         MEMORY_BASIC_INFORMATION mbi;
-        u8 *var = g_exe + g_cvars[i].rva;
+        u8 *var = g_exe + CVAR_RVA(i);
         oldProt[i] = 0;
         if (!VirtualQuery(var, &mbi, sizeof(mbi)) || mbi.State != MEM_COMMIT) {
             RestoreVarPages(oldProt, i);
@@ -917,8 +929,8 @@ static void Install(void)
 
     /* redirect the calls */
     for (i = 0; i < NUM_SITES; i++) {
-        if (!PatchCall(g_exe + g_sites[i].rva, g_stub + 0x40 + 0x10 * i, &err)) {
-            for (j = 0; j < i; j++) RestoreCall(g_exe + g_sites[j].rva, g_sites[j].orig);
+        if (!PatchCall(g_exe + g_build->sites[i].rva, g_stub + 0x40 + 0x10 * i, &err)) {
+            for (j = 0; j < i; j++) RestoreCall(g_exe + g_build->sites[j].rva, g_build->sites[j].orig);
             RestoreVarPages(oldProt, NUM_CVARS);
             VirtualFree(g_stub, 0, MEM_RELEASE);
             g_stub = 0;
@@ -929,7 +941,7 @@ static void Install(void)
                 TW(&reason, L").");
             } else {
                 TW(&reason, L"Internal error: call at ");
-                THex(&reason, (u64)(g_exe + g_sites[i].rva));
+                THex(&reason, (u64)(g_exe + g_build->sites[i].rva));
                 TW(&reason, L" out of range.");
             }
             NotApplied(reason.buf);
@@ -993,10 +1005,14 @@ BOOL WINAPI DllMain(HMODULE hinst, DWORD reason, void *reserved)
     sizeOfImage = *(const u32 *)(nt + 24 + 56);
     checksum = *(const u32 *)(nt + 24 + 64);
 
-    if (ts == EXE_TIMEDATESTAMP && sizeOfImage == EXE_SIZEOFIMAGE && checksum == EXE_CHECKSUM &&
-        (u64)g_exe == EXE_IMAGEBASE) {
-        Install();
-        return 1;
+    for (unsigned b = 0; b < NUM_BUILDS; b++) {
+        const ExeBuild *e = &g_builds[b];
+        if (ts == e->timeDateStamp && sizeOfImage == e->sizeOfImage && checksum == e->checkSum &&
+            (u64)g_exe == e->imageBase) {
+            g_build = e;
+            Install();
+            return 1;
+        }
     }
 
     if (StrEqNoCaseW(g_exeFile, EXE_NAME)) {
@@ -1009,14 +1025,15 @@ BOOL WINAPI DllMain(HMODULE hinst, DWORD reason, void *reserved)
         THex(&g_line, ts);
         TW(&g_line, L", SizeOfImage ");
         THex(&g_line, sizeOfImage);
-        TW(&g_line, L") is not the original executable of 7 June 2019");
+        TW(&g_line, L") is not one of the original executables (builds of 7 June 2019 and 19 November 2026)");
         LogText(g_line.buf);
         if (!GetEnvironmentVariableW(L"SAM2017_ASI_WARNED", warned, 8)) {
             SetEnvironmentVariableW(L"SAM2017_ASI_WARNED", L"1");
             TReset(&g_box);
             TW(&g_box, L"This ");
             TW(&g_box, g_exeFile);
-            TW(&g_box, L" is not the original executable of 7 June 2019 that the Sam2017 mod plugins (.asi) "
+            TW(&g_box, L" is not one of the original executables (builds of 7 June 2019 and 19 November 2026) "
+                       L"that the Sam2017 mod plugins (.asi) "
                        L"were made for. If it is a patched exe from an earlier build of these mods, restore "
                        L"the original one (Steam: Properties > Installed Files > Verify integrity of game "
                        L"files): the plugins now make the same changes in memory.\n\n"

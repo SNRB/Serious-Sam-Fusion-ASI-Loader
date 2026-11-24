@@ -11,6 +11,11 @@ T = {
             sec=0x140d5caa5, proceed=0x140d5cadb),
  'gm': dict(name='Sam2017_Unrestricted.exe', main=0x140e35fee, je=0x140e35fe8, succ=0x140e36177,
             sec=0x1401f80f5, proceed=0x1401f812b),
+ # build of 19 November 2026
+ 'ed26': dict(name='Sam2017_SeriousEditor.exe', main=0x140bbc94e, je=0x140bbc948, succ=0x140bbcad7,
+              sec=0x140d944e5, proceed=0x140d9451b, bin='SAM2017_BIN_2026'),
+ 'gm26': dict(name='Sam2017_Unrestricted.exe', main=0x140d98a5e, je=0x140d98a58, succ=0x140d98be7,
+              sec=0x1401f7a85, proceed=0x1401f7abb, bin='SAM2017_BIN_2026'),
 }
 MAIN_PATCH = bytes.fromhex('e984010000 90909090'.replace(' ',''))
 SEC_PATCH  = bytes.fromhex('eb34')
@@ -48,9 +53,8 @@ def check(which, path):
     return ok
 
 if __name__=='__main__':
-    binroot=os.environ.get('SAM2017_BIN','.')
     allok=True
-    for w in ('ed','gm'):
-        p=os.path.join(binroot,T[w]['name'])
+    for w in ('ed','gm','ed26','gm26'):
+        p=os.path.join(os.environ.get(T[w].get('bin','SAM2017_BIN'),'.'),T[w]['name'])
         allok&=check(w,p)
     sys.exit(0 if allok else 1)

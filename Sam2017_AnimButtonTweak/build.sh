@@ -1,16 +1,20 @@
 #!/bin/sh
 # Builds Sam2017_AnimButtonTweak.asi  (editor only).
-# Usage:  ./build.sh /path/to/original/Sam2017_SeriousEditor.exe
-# The original editor exe is read only to stamp the package with its identity (TimeDateStamp / SizeOfImage /
-# CheckSum / image base) and to confirm the target byte is as expected; it is not modified.
+# Usage:  ./build.sh /path/to/Sam2017_SeriousEditor.exe-of-7-June-2019 /path/to/Sam2017_SeriousEditor.exe-of-19-November-2026
+# The original editor exes are read only to stamp the packages with their identity (TimeDateStamp / SizeOfImage /
+# CheckSum / image base) and to confirm the target byte is as expected; they are not modified.
 set -e
+EXE2019="$(realpath "${1:?usage: ./build.sh <Sam2017_SeriousEditor.exe of 7 June 2019> <Sam2017_SeriousEditor.exe of 19 November 2026>}")"
+EXE2026="$(realpath "${2:?usage: ./build.sh <Sam2017_SeriousEditor.exe of 7 June 2019> <Sam2017_SeriousEditor.exe of 19 November 2026>}")"
 cd "$(dirname "$0")"
-EXE="${1:?usage: ./build.sh <path to original Sam2017_SeriousEditor.exe>}"
 B=out; mkdir -p "$B"
 
-# 1) build this plugin's byte-patch package  (editor VA 0x14186C38B: 0x66 -> 0x62)
-python3 make_pkg.py --feature AnimButtonTweak --exe "$EXE" --name Sam2017_SeriousEditor.exe \
-  --out "$B/pkg_AnimButtonTweak.h" --patch 0x14186c38b 66 62
+# 1) build this plugin's byte-patch packages, one per editor build (the same instruction, lea r9d,[rdi+0x66]):
+#      7 June 2019:      VA 0x14186C38B  0x66 -> 0x62
+#      19 November 2026: VA 0x1418AC2EB  0x66 -> 0x62
+python3 make_pkg.py --feature AnimButtonTweak --name Sam2017_SeriousEditor.exe --out "$B/pkg_AnimButtonTweak.h" \
+  --exe "$EXE2019" --patch 0x14186c38b 66 62 \
+  --exe "$EXE2026" --patch 0x1418ac2eb 66 62
 
 # 2) compile the shared runtime with that package embedded
 CF="--target=x86_64-pc-windows-msvc -O2 -fno-builtin -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fasynchronous-unwind-tables -Wall -Wextra -Wno-unused-function -Werror"

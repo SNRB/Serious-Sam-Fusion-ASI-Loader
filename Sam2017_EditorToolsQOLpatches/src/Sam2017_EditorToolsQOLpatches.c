@@ -1,13 +1,16 @@
 /*
  * Sam2017_EditorToolsQOLpatches.asi
  * ---------------------------------
- * ASI plugin for Serious Editor of Serious Sam Fusion 2017 (Sam2017_SeriousEditor.exe, build of
- * 7 June 2019): quality-of-life fixes for the editor's tools.  For now one:
+ * ASI plugin for Serious Editor of Serious Sam Fusion 2017 (Sam2017_SeriousEditor.exe, builds of
+ * 7 June 2019 and 19 November 2026): quality-of-life fixes for the editor's tools.  For now one:
  *
  * Skeleton editor, "Reparent" (Tool.SetBoneParent, Shift+S) and "Reparent in place"
  * (Tool.SetBoneParentInPlace, Shift+Alt+S): with several bones selected, the editor asks for the
  * new parent of the first one only ("Choose new parent for '<bone>' bone") and changes only that
  * bone.  With this plugin the new parent goes to every selected bone, in one undo step.
+ *
+ * (The addresses below are those of the 7 June 2019 build. The 19 November 2026 build has the same
+ * code at other addresses, e.g. Reparent at 0x141A2ED70; exe_expect.h holds the addresses of both.)
  *
  * Both tools run the same function in this build, 0x1419EE000 (the "in place" argument it gets is
  * not used): it takes the first bone of the selection (0x1419D9DB0), asks for the parent name
@@ -124,41 +127,43 @@ void *memcpy(void *dst, const void *src, size_t n)
 #define APPLIED_ENV_VAR   L"SAM2017_EditorToolsQOLpatches"
 
 _Static_assert(sizeof(MEMORY_BASIC_INFORMATION) == 48, "MEMORY_BASIC_INFORMATION layout");
-_Static_assert(sizeof(g_slots) / sizeof(g_slots[0]) == NUM_SLOTS, "exe_expect.h slot list");
 
 static u8 *g_exe;                    /* image base of the program */
 
-/* the editor's functions (RVAs; hashed in exe_expect.h) */
+/* the build of the running editor (one of g_builds in exe_expect.h) */
+static const ExeBuild *g_build;
+
+/* the editor's functions (RVAs of the running build, from exe_expect.h; hashed there) */
 typedef u64 IDENT;                                         /* pointer to an interned text */
 typedef struct { float qx, qy, qz, qw, vx, vy, vz; } QuatVect;   /* rotation (x y z w), position */
 typedef struct { char *s; } CString;
 
-#define RVA_Reparent            0x19EE000u  /* int (void *tool, int bInPlace): the editor's Reparent (first bone)  */
-#define RVA_BoneSelection       0x19D9DB0u  /* int *(int *list): handle list of the selected bones, in that order   */
-#define RVA_ListRelease         0x15BFE40u  /* void (int list)                                                     */
-#define RVA_ListCount           0x15BFD00u  /* int (const int *list)                                               */
-#define RVA_ListItem            0x15BFD30u  /* int (const int *list, int i): a bone handle                         */
-#define RVA_BoneName            0x19D2330u  /* IDENT *(IDENT *out, int bone)                                       */
-#define RVA_BoneLOD             0x19D23A0u  /* int (int bone): handle of its skeleton LOD                          */
-#define RVA_BoneParentName      0x19D23F0u  /* IDENT *(IDENT *out, int bone)                                       */
-#define RVA_FindBone            0x19F5540u  /* int (int lod, IDENT name): bone handle or -1                        */
-#define RVA_BonePlacement       0x19F5630u  /* QuatVect *(QuatVect *out, int bone, int flags): in the model         */
-#define RVA_BoneParent          0x19F5730u  /* int (int bone): parent bone handle or -1                            */
-#define RVA_SetBoneParent       0x19D2780u  /* void (int bone, IDENT parentName): undoable                         */
-#define RVA_SetBoneRelPlacement 0x19D27A0u  /* void (int bone, const QuatVect *rel): undoable                      */
-#define RVA_AskText             0x1673DB0u  /* int (const CString *title, const CString *text, CString *value,
+#define RVA_Reparent            (g_build->rvaReparent)             /* int (void *tool, int bInPlace): the editor's Reparent (first bone)  */
+#define RVA_BoneSelection       (g_build->rvaBoneSelection)        /* int *(int *list): handle list of the selected bones, in that order   */
+#define RVA_ListRelease         (g_build->rvaListRelease)          /* void (int list)                                                     */
+#define RVA_ListCount           (g_build->rvaListCount)            /* int (const int *list)                                               */
+#define RVA_ListItem            (g_build->rvaListItem)             /* int (const int *list, int i): a bone handle                         */
+#define RVA_BoneName            (g_build->rvaBoneName)             /* IDENT *(IDENT *out, int bone)                                       */
+#define RVA_BoneLOD             (g_build->rvaBoneLOD)              /* int (int bone): handle of its skeleton LOD                          */
+#define RVA_BoneParentName      (g_build->rvaBoneParentName)       /* IDENT *(IDENT *out, int bone)                                       */
+#define RVA_FindBone            (g_build->rvaFindBone)             /* int (int lod, IDENT name): bone handle or -1                        */
+#define RVA_BonePlacement       (g_build->rvaBonePlacement)        /* QuatVect *(QuatVect *out, int bone, int flags): in the model         */
+#define RVA_BoneParent          (g_build->rvaBoneParent)           /* int (int bone): parent bone handle or -1                            */
+#define RVA_SetBoneParent       (g_build->rvaSetBoneParent)        /* void (int bone, IDENT parentName): undoable                         */
+#define RVA_SetBoneRelPlacement (g_build->rvaSetBoneRelPlacement)  /* void (int bone, const QuatVect *rel): undoable                      */
+#define RVA_AskText             (g_build->rvaAskText)              /* int (const CString *title, const CString *text, CString *value,
                                                int, int, IDENT hints, int): 1 = OK                                 */
-#define RVA_CStringFrom         0x0B25C50u  /* CString *(CString *out, const char *s)                              */
-#define RVA_CStringFree         0x0B269A0u  /* void (CString *s)                                                   */
-#define RVA_IdentFromString     0x0B2AB30u  /* IDENT *(IDENT *out, const char *s)                                  */
-#define RVA_IdentText           0x0B2A9F0u  /* const char *(IDENT id)                                              */
-#define RVA_UndoBegin           0x15C0510u  /* void *(void *scope, void *tool)                                     */
-#define RVA_UndoCommit          0x15C0680u  /* void (void *scope, const char *name, int)                           */
-#define RVA_UndoEnd             0x15C05B0u  /* void (void *scope)                                                  */
-#define RVA_SkeletonTree        0x19EC460u  /* void *(void): the skeleton tree view, 0 when there is none          */
-#define RVA_SkeletonTreeReset   0x19EC2A0u  /* void (void *tree): it rebuilds its list                             */
-#define RVA_ConsoleInfo         0x0B1FFD0u  /* void (const char *format, ...)                                      */
-#define RVA_ConsoleWarning      0x0B20970u  /* void (const char *format, ...)                                      */
+#define RVA_CStringFrom         (g_build->rvaCStringFrom)          /* CString *(CString *out, const char *s)                              */
+#define RVA_CStringFree         (g_build->rvaCStringFree)          /* void (CString *s)                                                   */
+#define RVA_IdentFromString     (g_build->rvaIdentFromString)      /* IDENT *(IDENT *out, const char *s)                                  */
+#define RVA_IdentText           (g_build->rvaIdentText)            /* const char *(IDENT id)                                              */
+#define RVA_UndoBegin           (g_build->rvaUndoBegin)            /* void *(void *scope, void *tool)                                     */
+#define RVA_UndoCommit          (g_build->rvaUndoCommit)           /* void (void *scope, const char *name, int)                           */
+#define RVA_UndoEnd             (g_build->rvaUndoEnd)              /* void (void *scope)                                                  */
+#define RVA_SkeletonTree        (g_build->rvaSkeletonTree)         /* void *(void): the skeleton tree view, 0 when there is none          */
+#define RVA_SkeletonTreeReset   (g_build->rvaSkeletonTreeReset)    /* void (void *tree): it rebuilds its list                             */
+#define RVA_ConsoleInfo         (g_build->rvaConsoleInfo)          /* void (const char *format, ...)                                      */
+#define RVA_ConsoleWarning      (g_build->rvaConsoleWarning)       /* void (const char *format, ...)                                      */
 #define ARG_TEXT                0xABCD0009u /* type tag of a text argument of the editor's formatter ("%1")       */
 
 typedef int       (*PFN_Reparent)(void *tool, int inPlace);
@@ -619,8 +624,8 @@ static void Install(void)
 
     /* the slots it changes must hold their original values */
     for (i = 0; i < NUM_SLOTS; i++) {
-        const u8 *f = g_exe + g_slots[i].rva;
-        if (!IsReadable(f, 8) || *(volatile const u64 *)f != g_slots[i].orig) {
+        const u8 *f = g_exe + g_build->slots[i].rva;
+        if (!IsReadable(f, 8) || *(volatile const u64 *)f != g_build->slots[i].orig) {
             TReset(&reason);
             TW(&reason, L"The program data it changes was already changed by something else (at ");
             THex(&reason, (u64)f);
@@ -631,9 +636,10 @@ static void Install(void)
     }
 
     /* the code and data this plugin depends on must be the original */
-    for (i = 0; i < sizeof(g_verify) / sizeof(g_verify[0]); i++) {
-        const u8 *p = g_exe + g_verify[i].rva;
-        if (!IsReadable(p, g_verify[i].len) || Fnv1a64(p, g_verify[i].len) != g_verify[i].hash) {
+    for (i = 0; i < g_build->numVerify; i++) {
+        const VerifyRegion *v = &g_build->verify[i];
+        const u8 *p = g_exe + v->rva;
+        if (!IsReadable(p, v->len) || Fnv1a64(p, v->len) != v->hash) {
             TReset(&reason);
             TW(&reason, L"The program code or data it relies on is different from what it expects (at ");
             THex(&reason, (u64)p);
@@ -652,7 +658,7 @@ static void Install(void)
 
     /* the two slots, in the read-only data of the program (one page) */
     for (i = 0; i < NUM_SLOTS; i++) {
-        u8 *f = g_exe + g_slots[i].rva;
+        u8 *f = g_exe + g_build->slots[i].rva;
         if (!lo || f < lo) lo = f;
         if (!hi || f + 8 > hi) hi = f + 8;
     }
@@ -665,7 +671,7 @@ static void Install(void)
         NotApplied(reason.buf);
         return;
     }
-    for (i = 0; i < NUM_SLOTS; i++) *(volatile u64 *)(g_exe + g_slots[i].rva) = NewValue(i);
+    for (i = 0; i < NUM_SLOTS; i++) *(volatile u64 *)(g_exe + g_build->slots[i].rva) = NewValue(i);
     VirtualProtect(lo, (size_t)(hi - lo), old, &tmp);
     SetEnvironmentVariableW(APPLIED_ENV_VAR, L"1");
 
@@ -673,9 +679,9 @@ static void Install(void)
     TW(&g_line, L"applied to ");
     TW(&g_line, g_exeFile);
     TW(&g_line, L" (vtable slots ");
-    THex(&g_line, (u64)(g_exe + g_slots[0].rva));
+    THex(&g_line, (u64)(g_exe + g_build->slots[0].rva));
     TW(&g_line, L" and ");
-    THex(&g_line, (u64)(g_exe + g_slots[1].rva));
+    THex(&g_line, (u64)(g_exe + g_build->slots[1].rva));
     TW(&g_line, L"): Skeleton editor \"Reparent\" (Shift+S) and \"Reparent in place\" (Shift+Alt+S) give the new parent "
                 L"to every selected bone");
     LogText(g_line.buf);
@@ -711,10 +717,14 @@ BOOL WINAPI DllMain(HMODULE hinst, DWORD reason, void *reserved)
     sizeOfImage = *(const u32 *)(nt + 24 + 56);
     checksum = *(const u32 *)(nt + 24 + 64);
 
-    if (ts == EXE_TIMEDATESTAMP && sizeOfImage == EXE_SIZEOFIMAGE && checksum == EXE_CHECKSUM &&
-        (u64)g_exe == EXE_IMAGEBASE) {
-        Install();
-        return 1;
+    for (unsigned b = 0; b < NUM_BUILDS; b++) {
+        const ExeBuild *e = &g_builds[b];
+        if (ts == e->timeDateStamp && sizeOfImage == e->sizeOfImage && checksum == e->checkSum &&
+            (u64)g_exe == e->imageBase) {
+            g_build = e;
+            Install();
+            return 1;
+        }
     }
 
     if (StrEqNoCaseW(g_exeFile, EXE_NAME)) {
@@ -727,14 +737,15 @@ BOOL WINAPI DllMain(HMODULE hinst, DWORD reason, void *reserved)
         THex(&g_line, ts);
         TW(&g_line, L", SizeOfImage ");
         THex(&g_line, sizeOfImage);
-        TW(&g_line, L") is not the original executable of 7 June 2019");
+        TW(&g_line, L") is not one of the original executables (builds of 7 June 2019 and 19 November 2026)");
         LogText(g_line.buf);
         if (!GetEnvironmentVariableW(L"SAM2017_ASI_WARNED", warned, 8)) {
             SetEnvironmentVariableW(L"SAM2017_ASI_WARNED", L"1");
             TReset(&g_box);
             TW(&g_box, L"This ");
             TW(&g_box, g_exeFile);
-            TW(&g_box, L" is not the original executable of 7 June 2019 that the Sam2017 mod plugins (.asi) "
+            TW(&g_box, L" is not one of the original executables (builds of 7 June 2019 and 19 November 2026) "
+                       L"that the Sam2017 mod plugins (.asi) "
                        L"were made for. If it is a patched exe from an earlier build of these mods, restore "
                        L"the original one (Steam: Properties > Installed Files > Verify integrity of game "
                        L"files): the plugins now make the same changes in memory.\n\n"

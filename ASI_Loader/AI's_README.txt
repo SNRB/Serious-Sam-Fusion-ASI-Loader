@@ -2,6 +2,11 @@
 
 Builds **standalone** — no executable or package needed.
 
+Unchanged for the editor and game of 19 November 2026: the loader does not depend on the exe build (it hooks whatever
+entry point the exe has), and both new exes import `msimg32.dll` (`AlphaBlend`) and the same five `winmm` functions
+(editor) as the exes of 7 June 2019, so `msimg32.dll` still works for both and `winmm.dll` still for the editor only.
+The source here is the original one and builds the same `msimg32.dll` byte for byte.
+
 ## What it is
 A proxy DLL the game/editor already imports at launch. It forwards the real exports to the system DLL and hooks the
 exe's entry point so every `*.asi` next to the exe (and in `scripts\` / `plugins\`) is loaded before the C runtime

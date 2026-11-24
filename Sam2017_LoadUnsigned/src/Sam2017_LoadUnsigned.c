@@ -2,7 +2,8 @@
  * Sam2017_LoadUnsigned.asi
  * ---------------------------------------------------------------------------
  * Lets the editor and the game load otherwise-valid assets that are missing
- * the editor signature, for Serious Sam Fusion 2017, build of 7 June 2019:
+ * the editor signature, for Serious Sam Fusion 2017, builds of 7 June 2019
+ * and 19 November 2026:
  *     Sam2017_SeriousEditor.exe  and  Sam2017_Unrestricted.exe
  *
  * Without this, loading such a file fails with
@@ -197,7 +198,8 @@ static void Apply(void)
             if (wieq(exeName, g_targets[i].exeName)) {
                 static wchar_t m[1024]; m[0] = 0;
                 wcat(m, 1024, exeName);
-                wcat(m, 1024, L" is not the original executable of 7 June 2019 that ");
+                wcat(m, 1024, L" is not one of the original executables (builds of 7 June 2019 and "
+                              L"19 November 2026) that ");
                 wcat(m, 1024, g_plugName);
                 wcat(m, 1024, L" was made for. If it is a patched exe, restore the original one "
                               L"(Steam: Properties > Installed Files > Verify integrity of game files).\n\n"

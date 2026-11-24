@@ -1,6 +1,7 @@
 #!/bin/sh
 # Builds Sam2017_EditorToolsQOLpatches.asi with clang + lld (no Windows SDK or C runtime needed).
-# exe_expect.h is generated from the original Sam2017_SeriousEditor.exe with gen_expect.py.
+# exe_expect.h is generated from the original Sam2017_SeriousEditor.exe of both builds (7 June 2019 and
+# 19 November 2026) with gen_expect.py.
 set -e
 cd "$(dirname "$0")"
 mkdir -p out

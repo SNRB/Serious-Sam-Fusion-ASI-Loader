@@ -7,9 +7,11 @@ sys.path.insert(0, os.path.join(HERE, '..', 'tools'))
 import meta
 from pe import PE
 
-NQ = 0x463e + 12
-STREAM = {'ed': 0x1420e3150, 'gm': 0x1412f92a0}
-EXE = {'ed': 'Sam2017_SeriousEditor.exe', 'gm': 'Sam2017_Unrestricted.exe'}
+STREAM = {'ed': 0x1420e3150, 'gm': 0x1412f92a0, 'ed26': 0x142145bd0, 'gm26': 0x14128e8e0}
+NQS = {'ed': 0x463e + 12, 'gm': 0x463e + 12, 'ed26': 0x469e + 12, 'gm26': 0x469e + 12}
+EXE = {'ed': 'Sam2017_SeriousEditor.exe', 'gm': 'Sam2017_Unrestricted.exe',
+       'ed26': 'Sam2017_SeriousEditor.exe', 'gm26': 'Sam2017_Unrestricted.exe'}
+BIN = {'ed': 'SAM2017_BIN', 'gm': 'SAM2017_BIN', 'ed26': 'SAM2017_BIN_2026', 'gm26': 'SAM2017_BIN_2026'}
 
 
 def load(path):
@@ -39,7 +41,8 @@ class FakePE:
 
 
 which, path = sys.argv[1], sys.argv[2]
-exe = os.path.join(os.environ.get('SAM2017_BIN', '.'), EXE[which])
+NQ = NQS[which]
+exe = os.path.join(os.environ.get(BIN[which], '.'), EXE[which])
 pe = PE(exe)
 qs, strs = load(path)
 fp = FakePE(pe, qs, strs)

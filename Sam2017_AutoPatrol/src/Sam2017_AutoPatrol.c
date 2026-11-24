@@ -4,7 +4,7 @@
  * Adds an "Auto patrol" check box to every character entity (all properties
  * derived from CPuppetProperties: Legged character, Aircraft, Turret,
  * Hovercraft, Rolling ball, Spaceship, ...) of Serious Sam Fusion 2017,
- * build of 7 June 2019:
+ * builds of 7 June 2019 and 19 November 2026:
  *     Sam2017_SeriousEditor.exe  and  Sam2017_Unrestricted.exe
  *
  * Off by default. When checked, and the character has a Tactic (its own, or
@@ -328,7 +328,8 @@ static void Apply(void)
                 static wchar_t m[1024];
                 m[0] = 0;
                 wcat(m, 1024, exeName);
-                wcat(m, 1024, L" is not the original executable of 7 June 2019 that ");
+                wcat(m, 1024, L" is not one of the original executables (builds of 7 June 2019 and "
+                              L"19 November 2026) that ");
                 wcat(m, 1024, g_plugName);
                 wcat(m, 1024, L" was made for. If it is a patched exe, restore the original one "
                               L"(Steam: Properties > Installed Files > Verify integrity of game files).\n\n"
@@ -372,15 +373,16 @@ static void Apply(void)
         return;
     }
 
-    if (Fnv1a64((const u8 *)T->stream, STREAM_QWORDS * 8) != T->streamHash) {
+    if (T->streamQwords > STREAM_QWORDS_MAX || T->idxInsert >= T->streamQwords ||
+        Fnv1a64((const u8 *)T->stream, (u64)T->streamQwords * 8) != T->streamHash) {
         FailMsg(L"the character meta data is different from what it expects", T->stream);
         return;
     }
     const u64 *src = (const u64 *)T->stream;
-    if (src[IDX_FORMAT] != OLD_FORMAT || src[IDX_NMEMBERS] != OLD_NMEMBERS ||
-        src[IDX_BOOLREC] != 1 || src[IDX_BOOLREC + 2] != 20 || src[IDX_BOOLREC + 7] != 0xa8 ||
-        src[IDX_INSERT - 12 + 7] != 0x180 || src[IDX_INSERT] != 6 ||
-        src[STREAM_QWORDS - 1] != ~0ULL) {
+    if (src[T->idxFormat] != OLD_FORMAT || src[T->idxNMembers] != OLD_NMEMBERS ||
+        src[T->idxBoolRec] != 1 || src[T->idxBoolRec + 2] != 20 || src[T->idxBoolRec + 7] != 0xa8 ||
+        src[T->idxInsert - 12 + 7] != 0x180 || src[T->idxInsert] != 6 ||
+        src[T->streamQwords - 1] != ~0ULL) {
         FailMsg(L"unexpected meta data layout", T->stream);
         return;
     }

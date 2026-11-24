@@ -1,8 +1,9 @@
 #!/bin/sh
 # Builds Sam2017_MultiPathMarker.asi.
 #
-# Needs: clang + lld-link + llvm-dlltool (LLVM 18), objdump (binutils), Python 3, and the two ORIGINAL executables
-# (7 June 2019): put them in exe/ next to this script, or set SAM2017_EDITOR_EXE / SAM2017_GAME_EXE to their paths.
+# Needs: clang + lld-link + llvm-dlltool (LLVM 18), objdump (binutils), Python 3, and the ORIGINAL executables of both
+# supported builds: the two of 7 June 2019 in exe/ next to this script (or SAM2017_EDITOR_EXE / SAM2017_GAME_EXE set to
+# their paths) and the two of 19 November 2026 in exe/2026/ (or SAM2017_EDITOR_EXE_2026 / SAM2017_GAME_EXE_2026).
 # The feature is src/mpm.c; tools/ holds the package-build helpers, cfg/ the addresses in the executables.
 set -e
 cd "$(dirname "$0")"

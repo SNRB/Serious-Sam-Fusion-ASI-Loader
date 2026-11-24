@@ -1,7 +1,19 @@
 # Sam2017_MoreConsoleCommandsSED.asi
 
-ASI plugin for Serious Editor of Serious Sam Fusion 2017 (`Sam2017_SeriousEditor.exe`, build of 7 June 2019).
+ASI plugin for Serious Editor of Serious Sam Fusion 2017 (`Sam2017_SeriousEditor.exe`, builds of 7 June 2019 and
+19 November 2026).
 It declares console variables whose code is in the editor but which its console does not know, and adds a key-bound command.
+
+## Changes for the editor of 19 November 2026
+
+The plugin now works with the editor of 19 November 2026 as well as the one of 7 June 2019; it recognizes the build
+and uses its addresses. The nine variables, the code that reads them, the five redirected calls and every editor
+function it uses are the same in the new build, only at other addresses, so the variables, their help records and
+the command behave the same. The variables' addresses in the new build are listed in the comments of `g_cvars[]`
+(the table below gives the 2019 ones); the code addresses in "How it works" are those of the 2019 build.
+
+One change in the plugin's code: the check of the metadata name getter compared the getter's `jmp` with a fixed
+displacement, which differs in the new build; it now checks that the `jmp` goes to the build's id-to-text function.
 
 ## Console variables
 
@@ -85,10 +97,17 @@ The plugin redirects five calls in memory. The exe file on disk is never changed
 
 ## Adding more variables
 
-Add a line to `g_cvars[]` in `src/Sam2017_MoreConsoleCommandsSED.c`. Give the name, the address minus 0x140000000, the
-type name, whether it is saved, and optional min/max values. Then run `src/build.sh`, which needs clang, lld-link and
-llvm-dlltool (no Windows SDK or C runtime). If you add code the plugin relies on, add it to `src/gen_expect.py`, which
-generates `exe_expect.h` from the original exe.
+Add a line to `g_cvars[]` in `src/Sam2017_MoreConsoleCommandsSED.c`: the name, the type name, whether it is saved, and
+optional min/max values. Add its address minus 0x140000000 in both builds, and an instruction of the editor that reads
+it, to the `cvars` and `readers` lists of both builds in `src/gen_expect.py` (same order as `g_cvars[]`), and its name
+to `CVAR_NAMES`. Then run
+
+    python3 src/gen_expect.py <exe of 7 June 2019> <exe of 19 November 2026> src/exe_expect.h
+    src/build.sh
+
+`gen_expect.py` checks every address in both exes and writes the per-build tables of `exe_expect.h` (checks, hashes,
+call sites, addresses); `build.sh` needs clang, lld-link and llvm-dlltool (no Windows SDK or C runtime). If you add
+code the plugin relies on, add it to `gen_expect.py` too.
 
 ## Test harness
 
@@ -101,6 +120,12 @@ editor's own code:
 - creation of `CommandHandler.Global` and the real `RegisterCommand`/`RegisterShortcut`;
 - key presses dispatched by the editor's shortcut handling.
 
-    gcc -O1 -o harness test/harness.c
-    ./harness Sam2017_SeriousEditor.exe Sam2017_MoreConsoleCommandsSED.asi realcore
+    test/build.sh            # builds test/harness (editor of 7 June 2019) and test/harness26 (19 November 2026)
+    test/harness Sam2017_SeriousEditor.exe Sam2017_MoreConsoleCommandsSED.asi realcore
+    test/harness26 Sam2017_SeriousEditor.exe Sam2017_MoreConsoleCommandsSED.asi realcore
     # other modes: full realcmd cookie late twice conflict relied game wrongbuild pretoggled badgetter
+
+`harness26` is the same harness for the 2026 editor: `test/build.sh` makes it from `harness.c` with the editor
+addresses replaced by those of `test/addr_2026.txt` (`test/apply_map.py`). All twelve modes pass on both builds, so the
+2026 editor's own code (Core initialization, INI saving and loading, help loader, command registration, shortcuts)
+was run with the plugin.

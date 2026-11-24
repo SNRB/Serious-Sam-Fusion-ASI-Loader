@@ -11,7 +11,8 @@ typedef signed long long   i64;
 typedef __WCHAR_TYPE__     wchar_t;   /* 16-bit on Windows targets (matches L"...") */
 
 /* ------------------------------------------------------------------------- */
-/* the two supported executables                                             */
+/* the supported executables: editor and game, builds of 7 June 2019 and     */
+/* 19 November 2026                                                          */
 /* ------------------------------------------------------------------------- */
 typedef struct Target {
     const wchar_t *exeName;
@@ -35,14 +36,17 @@ typedef struct Target {
     u8  staticInitBytes[21];
     u8  proRegisterMetaData[16], proHandleToPtr[16], proPtrToHandle[16], proIsDerivedFrom[16],
         proBaseInit[16];
+    /* layout of the original meta data stream (qword indices). The CPuppetProperties record is the same in
+       every build, but the stream also holds other classes (CPuppetEntity, ...) that grew in the 2026 build. */
+    u32 streamQwords;       /* including the terminating -1                 */
+    u32 idxFormat;          /* CPuppetProperties format (151)               */
+    u32 idxNMembers;        /* number of members (48)                       */
+    u32 idxBoolRec;         /* the ep_bIsMultiSpawnerTemplate record (BOOL) */
+    u32 idxInsert;          /* after the last member record (ep_fActiveRangeOverride): functions count */
 } Target;
 
-/* layout of the original meta data stream (identical in both executables) */
-#define STREAM_QWORDS   0x463e  /* including the terminating -1                 */
-#define IDX_FORMAT      0x2da   /* CPuppetProperties format (151)               */
-#define IDX_NMEMBERS    0x2e2   /* number of members (48)                       */
-#define IDX_BOOLREC     0x31f   /* the ep_bIsMultiSpawnerTemplate record (BOOL) */
-#define IDX_INSERT      0x523   /* after the last member record (ep_fActiveRangeOverride): functions count */
+/* the longest original stream of all supported builds (0x463e in 2019, 0x469e in 2026) */
+#define STREAM_QWORDS_MAX 0x4700
 #define OLD_FORMAT      151
 #define NEW_FORMAT      152
 #define OLD_NMEMBERS    48

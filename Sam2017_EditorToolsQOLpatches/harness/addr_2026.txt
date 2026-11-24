@@ -1,0 +1,87 @@
+# Addresses in the harness: Sam2017_SeriousEditor.exe of 7 June 2019 -> 19 November 2026 (apply_map.py).
+# Found by matching the code of the two builds (function by function, and through the code and data that
+# refer to them); the harness for the 2026 editor is the 2019 one with these numbers replaced.
+0x140B20580 0x140B20290  # same function
+0x140B20A00 0x140B20710  # same function
+0x140B20E30 0x140B20B40  # same function
+0x140B20EF0 0x140B20C00  # same function
+0x140B210F0 0x140B20E00  # same function
+0x140B21260 0x140B20F70  # same function
+0x140B21360 0x140B21070  # same function
+0x140B21690 0x140B213A0  # same function (by its callers) {'0x140b213a0': 4149}
+0x140B216A0 0x140B213B0  # same function
+0x140B217A0 0x140B214B0  # same function
+0x140B219D0 0x140B216E0  # same function
+0x140B21BC0 0x140B218D0  # same function
+0x140B25C50 0x140B25940  # same function
+0x140B269A0 0x140B26690  # same function (by its callers) {'0x140b26690': 21866, '0x141093f20': 1}
+0x140B27910 0x140B27620  # same function
+0x140B2A9F0 0x140B2A700  # same function (by its callers) {'0x140b2a700': 1912}
+0x140B2AB30 0x140B2A840  # same function
+0x140B2BF50 0x140B2BC60  # same function
+0x140B2C220 0x140B2BF30  # same function
+0x140B338B0 0x140B33590  # same function
+0x1415BFD00 0x1415FF960  # same function (by its callers) {'0x1415ff960': 1246}
+0x1415BFD30 0x1415FF990  # same function (by its callers) {'0x1415ff990': 1385}
+0x1415BFE40 0x1415FFAA0  # same function
+0x1415C0510 0x141600170  # same function
+0x1415C05B0 0x141600210  # same function
+0x1415C0680 0x1416002E0  # same function
+0x1415E2DF0 0x141622960  # same function
+0x1415E2ED0 0x141622A40  # same function
+0x141645010 0x141684CC0  # same function
+0x141645190 0x141684E40  # same function
+0x141673DB0 0x1416B3E30  # same function
+0x1416E0230 0x1417201A0  # same function
+0x1417C5AE0 0x141805BD0  # same function
+0x1417C5C60 0x141805D50  # same function
+0x1419D1B30 0x141A128A0  # same function
+0x1419D2330 0x141A130A0  # same function
+0x1419D23F0 0x141A13160  # same function
+0x1419D2760 0x141A134D0  # same function
+0x1419D2780 0x141A134F0  # same function
+0x1419D27A0 0x141A13510  # same function
+0x1419D29D0 0x141A13740  # same function
+0x1419D9DB0 0x141A1AAE0  # same function
+0x1419DA450 0x141A1B180  # same function
+0x1419DA5F0 0x141A1B320  # same function
+0x1419DB530 0x141A1C260  # same function
+0x1419DBC70 0x141A1C9A0  # same function
+0x1419DC1B0 0x141A1CED0  # same function
+0x1419DC1E0 0x141A1CF00  # same function
+0x1419DC2E0 0x141A1D000  # same function
+0x1419EC460 0x141A2D1D0  # same function (by its callers) {'0x141a2d1d0': 2}
+0x1419EDFE0 0x141A2ED50  # Tool.SetBoneParentInPlace slot 30 (the original value)
+0x1419EDFF0 0x141A2ED60  # Tool.SetBoneParent slot 30 (the original value)
+0x1419EE000 0x141A2ED70  # same function
+0x1419EE100 0x141A2EE70  # same function
+0x1419EF280 0x141A2FFF0  # same function
+0x1419EF2C0 0x141A30030  # same function
+0x1419F5630 0x141A36290  # same function
+0x1419F5730 0x141A36390  # same function
+0x141ABA8B0 0x141AFB4A8  # same function
+0x141B54CE0 0x141B94CC0  # data offset +0x8 from 0x141b54cd8 (data votes 1)
+0x141B77A00 0x141BB7A08  # data data votes 1
+0x14261A2E8 0x142680678  # data data votes 1
+0x142621F70 0x142688300  # data data votes 1
+0x142622060 0x1426883F0  # data offset +0xf0 from 0x142621f70 (data votes 1)
+0x142622090 0x142688420  # data data votes 1
+0x142622180 0x142688510  # data offset +0xf0 from 0x142622090 (data votes 1)
+0x1429709A8 0x1429D9938  # data data votes 52
+0x142A32688 0x142A93348  # data data votes 219
+0x1431DD258 0x14323E718  # data data votes 2
+0x1431DD260 0x14323E720  # data data votes 1
+0x1431DD2C0 0x14323E780  # data data votes 154
+0x143312D80 0x143374080  # data data votes 4
+0x1433134E0 0x1433747E0  # data data votes 2
+0x1433134E8 0x1433747E8  # data data votes 4
+0x14331FF70 0x143381270  # data data votes 2
+0x143320098 0x143381398  # data offset +0x8 from 0x143320090 (data votes 2)
+0x143524000 0x143588000  # .tls (the TLS template, same content)
+0x143524068 0x143588068  # .tls
+0x2A32688 0x2A93348  # RVA of the /GS security cookie
+0x1B54000 0x1B94000  # RVA of .rdata
+0x286A000 0x28D3000  # RVA of .data
+0x3324000 0x3385000  # RVA of .pdata
+0x5CF9A1F6 0x6AFEF6E9  # TimeDateStamp of Sam2017_Unrestricted.exe (mode game)
+0x27FB000 0x2788000  # SizeOfImage of Sam2017_Unrestricted.exe (mode game)
