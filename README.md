@@ -28,7 +28,7 @@ Key combination restored from Serious Sam 2 - displays internal metadata of all 
 ### res_bSaveInTextFormat (0,1,2)
 Save assets in plain text format instead of binary, 1 skips certain formats, 2 saves every file, function stays on upon restarting editor and is saved to SeriousEditor.ini
 
-❗IMPORTANT: world files saved with this option have broken signature, they require SeSigning or Load Unsigned plugin below❗
+❗IMPORTANT: worlds saved with this option on break due to in-editor's wrecker system inconsistency, next update will patch this command❗
 ### scr_bUnsecureScripting
 
 <img width="599" alt="2026-11-18 20_56_53-Simulation" src="https://github.com/user-attachments/assets/816aa103-d720-4cde-b42c-4d0bd3ac66a6" />
